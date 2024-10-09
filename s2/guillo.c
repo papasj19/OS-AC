@@ -106,17 +106,13 @@ int main() {
     write(STDOUT_FILENO, output_message, strlen(output_message));
     free(output_message);
 
-    // Loop for three sections: Strings, Winds, Percussion
+    // Loop for the instrument sections 
     for (int i = 1; i <= 3; i++) {
         current_section = i;
-
-        // Waiting message for the next section
-        if (i == 1) {
-            asprintf(&output_message, "Waiting to start String section. Send SIGUSR1 to continue.\n");
-        } else if (i == 2) {
-            asprintf(&output_message, "Waiting to start Wind section. Send SIGUSR1 to continue.\n");
+        if (i == 2) {
+            asprintf(&output_message, "Waiting to start Wind section.\n");
         } else if (i == 3) {
-            asprintf(&output_message, "Waiting to start Percussion section. Send SIGUSR1 to continue.\n");
+            asprintf(&output_message, "Waiting to start Percussion section.\n");
         }
         write(STDOUT_FILENO, output_message, strlen(output_message));
         free(output_message);
@@ -134,7 +130,7 @@ int main() {
     }
 
     // Final message after all sections are completed
-    asprintf(&output_message, "Director: Percussion section completed and Concert finished successfully\n");
+    asprintf(&output_message, "Director: Percussion section completed.\nConcert finished successfully\n");
     write(STDOUT_FILENO, output_message, strlen(output_message));
     free(output_message);
 
