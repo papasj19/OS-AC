@@ -24,6 +24,12 @@ void signal_handler(int sig) {
     }
 }
 
+// Signal handler for SIGINT (CTRL+C)
+void ignore_sigint() {
+    // Do nothing to ignore SIGINT
+    return;
+}
+
 // Function to wait for all section child processes to complete
 void wait_for_section_to_complete() {
     char *completion_message;
@@ -36,10 +42,12 @@ void wait_for_section_to_complete() {
 
 // Function to start each section and spawn its subprocesses
 void start_section(int section) {
-    char *section_message;
+    char *section_message = NULL;
+    
     asprintf(&section_message, "Section is ready to start\n");
     write(STDOUT_FILENO, section_message, strlen(section_message));
-    free(section_message);
+    free(section_message); // Free the memory and set to NULL to avoid double-free
+    section_message = NULL;
 
     if (section == 1) { // String Section
         if (fork() == 0) {
@@ -100,26 +108,41 @@ void start_section(int section) {
 }
 
 int main() {
-    char *output_message;
+    char *output_message = NULL;
 
     // Set up signal handler for SIGUSR1
     signal(SIGUSR1, signal_handler);
 
+    // Set up signal handler for SIGINT to ignore CTRL+C
+    signal(SIGINT, ignore_sigint);
+
     // Print initial message
     asprintf(&output_message, "Director (PID %d) starting the concert. Use 'kill -SIGUSR1 %d' to start sections\n", getpid(), getpid());
     write(STDOUT_FILENO, output_message, strlen(output_message));
-    free(output_message);
+    free(output_message); // Free the memory and set to NULL to avoid double-free
+    output_message = NULL;
+
+    // Print "Section is ready to start." message
+    asprintf(&output_message, "Section is ready to start.\n");
+    write(STDOUT_FILENO, output_message, strlen(output_message));
+    free(output_message);  // Free the memory after printing
+    output_message = NULL;
 
     // Loop for the instrument sections 
     for (int i = 1; i <= 3; i++) {
         current_section = i;
+        
         if (i == 2) {
             asprintf(&output_message, "Waiting to start Wind section.\n");
         } else if (i == 3) {
             asprintf(&output_message, "Waiting to start Percussion section.\n");
         }
-        write(STDOUT_FILENO, output_message, strlen(output_message));
-        free(output_message);
+        
+        if (output_message != NULL) {
+            write(STDOUT_FILENO, output_message, strlen(output_message));
+            free(output_message); // Free the memory after each message
+            output_message = NULL;
+        }
 
         // Wait for SIGUSR1 to start the section
         while (!section_started) {
@@ -134,9 +157,10 @@ int main() {
     }
 
     // Final message after all sections are completed
-    asprintf(&output_message, "Director: Percussion section completed.\nConcert finished successfully\n");
+    asprintf(&output_message, "Director: Percussion section completed.\n\nConcert finished successfully\n");
     write(STDOUT_FILENO, output_message, strlen(output_message));
-    free(output_message);
+    free(output_message);  // Free the memory
+    output_message = NULL;
 
     return 0;
 }
