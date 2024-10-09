@@ -40,14 +40,9 @@ void wait_for_section_to_complete() {
     free(completion_message);
 }
 
-// Function to start each section and spawn its subprocesses
-void start_section(int section) {
+// Function to start each instrument process
+void start_instruments(int section) {
     char *section_message = NULL;
-    
-    asprintf(&section_message, "Section is ready to start\n");
-    write(STDOUT_FILENO, section_message, strlen(section_message));
-    free(section_message); // Free the memory and set to NULL to avoid double-free
-    section_message = NULL;
 
     if (section == 1) { // String Section
         if (fork() == 0) {
@@ -71,7 +66,6 @@ void start_section(int section) {
             sleep(2);
             exit(0);
         }
-        wait_for_section_to_complete();
     } else if (section == 2) { // Wind Section
         if (fork() == 0) {
             asprintf(&section_message, "Wind Flute is playing: Do Do\n");
@@ -87,7 +81,6 @@ void start_section(int section) {
             sleep(2);
             exit(0);
         }
-        wait_for_section_to_complete();
     } else if (section == 3) { // Percussion Section
         if (fork() == 0) {
             asprintf(&section_message, "Percussion Triangle is playing: Do Re Mi\n");
@@ -103,9 +96,28 @@ void start_section(int section) {
             sleep(2);
             exit(0);
         }
-        wait_for_section_to_complete();
+    }
+    wait_for_section_to_complete();  // Wait for instruments in the section to finish
+}
+
+// Function to start each section, which then starts the instruments
+void start_section(int section) {
+    char *section_message = NULL;
+
+    asprintf(&section_message, "Section is ready to start\n");
+    write(STDOUT_FILENO, section_message, strlen(section_message));
+    free(section_message);
+
+    if (fork() == 0) {  // Fork the section
+        start_instruments(section);  // Each section forks its instruments
+        exit(0);  // Section process exits after its instruments are done
+    } else {
+        // Wait only for the section process to finish, not for the instruments again
+        int status;
+        wait(&status);
     }
 }
+
 
 int main() {
     char *output_message = NULL;
@@ -119,13 +131,7 @@ int main() {
     // Print initial message
     asprintf(&output_message, "Director (PID %d) starting the concert. Use 'kill -SIGUSR1 %d' to start sections\n", getpid(), getpid());
     write(STDOUT_FILENO, output_message, strlen(output_message));
-    free(output_message); // Free the memory and set to NULL to avoid double-free
-    output_message = NULL;
-
-    // Print "Section is ready to start." message
-    asprintf(&output_message, "Section is ready to start.\n");
-    write(STDOUT_FILENO, output_message, strlen(output_message));
-    free(output_message);  // Free the memory after printing
+    free(output_message);  // Free the memory and set to NULL to avoid double-free
     output_message = NULL;
 
     // Loop for the instrument sections 
@@ -140,7 +146,7 @@ int main() {
         
         if (output_message != NULL) {
             write(STDOUT_FILENO, output_message, strlen(output_message));
-            free(output_message); // Free the memory after each message
+            free(output_message);  // Free the memory after each message
             output_message = NULL;
         }
 
