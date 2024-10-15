@@ -1,3 +1,7 @@
+// Operating Systems Lab 1:
+// Authors: Guillermo Nebra Aljama guillermo.nebra
+// Spencer Johnson spencerjames.johnson 
+
 #define _GNU_SOURCE
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -130,7 +134,7 @@ int main() {
     }
 
     // Final message after all sections are completed
-    asprintf(&output_message, "Director: Percussion section completed.\n\nConcert finished successfully\n");
+    asprintf(&output_message, "Director: Percussion section completed.\nConcert finished successfully\n");
     write(STDOUT_FILENO, output_message, strlen(output_message));
     free(output_message);
 
