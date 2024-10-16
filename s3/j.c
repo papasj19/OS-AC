@@ -10,11 +10,15 @@
 #include <string.h>
 
 
-void * doMean(void *arg){
-
-
-
-    return (void *) arg; 
+void * doMean(void * arg) {    
+    float* info = (float *) arg; // Initialize max to the first element of the array
+    float sum = 0;
+    float *returnable = malloc(1 * sizeof(float));
+    for (int i = 0; i < sizeof(info); i++) {
+        sum += info[i];
+    }
+    returnable[0] = sum / sizeof(info);
+    return (void *) returnable;
 }
 
 void doMedian(){
