@@ -2,6 +2,7 @@
 // Guillermo Nebra Aljama guillermo.nebra
 // Spencer Johnson spencerjames.johnson
 
+#define _GNU_SOURCE
 #define _XOPEN_SOURCE 500
 #define _POSIX_C_SOURCE 1
 #include <stdio.h>
@@ -21,7 +22,7 @@ void * doMean(void * arg) {
     float* info = (float *) arg; // Initialize max to the first element of the array
     float sum = 0;
     float *returnable = malloc(1 * sizeof(float));
-    for (int i = 0; i < sizeof(info); i++) {
+    for (int i = 0; i < (int)sizeof(info); i++) {
         sum += info[i];
     }
     returnable[0] = sum / sizeof(info);
@@ -87,7 +88,7 @@ void *doMax(void * arg) {
     float* info = (float *) arg; // Initialize max to the first element of the array
     float max = info[0];
     float *returnable = malloc(1 * sizeof(float));
-    for (int i = 1; i < sizeof(arg); i++) {
+    for (int i = 1; i < (int)sizeof(arg); i++) {
         if (info[i] > max) {
             max = info[i]; 
         }
@@ -100,7 +101,7 @@ void *doMin(void * arg){
     float* info = (float *) arg; 
     float max = info[0];
     float *returnable = malloc(1 * sizeof(float));
-    for (int i = 1; i < sizeof(arg); i++) {
+    for (int i = 1; i < (int)sizeof(arg); i++) {
         if (info[i] < max) {
             max = info[i]; 
         }
