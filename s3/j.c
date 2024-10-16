@@ -195,7 +195,7 @@ int main ( int argc, char* argv[]){
 
     int s5;
     pthread_t t5;
-    s5 = pthread_create(&t5, NULL, doVar, NULL);
+    s5 = pthread_create(&t5, NULL, doVariance, NULL);
     if(s5 != 0){
         char *buffer;
         asprintf(&buffer, "bad creation :(\n");

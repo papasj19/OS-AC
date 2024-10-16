@@ -49,32 +49,21 @@ int compare(const void *a, const void *b) {
 }
 
 void *doMedian(void *arg) {
-    // Cast the void pointer to a float pointer
     float* info = (float *) arg;
     int size = getArraySize(info);
-
-    // Allocate memory for a copy of the array to sort
     float* arrCopy = malloc(size * sizeof(float));
     if (arrCopy == NULL) {
         perror("Malloc failed");
         exit(EXIT_FAILURE);
     }
 
-    // Copy the original array elements to arrCopy
     for (int i = 0; i < size; i++) {
         arrCopy[i] = info[i];
     }
 
-    // Sort the copied array
     qsort(arrCopy, size, sizeof(float), compare);
-
-    // Calculate the median
-    float median;
-    if (size % 2 != 0) {
-        median = arrCopy[size / 2];  // Odd number of elements
-    } else {
-        median = (arrCopy[size / 2 - 1] + arrCopy[size / 2]) / 2.0;  // Even number of elements
-    }
+    int size2 = size / 2; 
+    float median = arrCopy[size2];
 
     // Allocate memory for the return value
     float *returnable = malloc(1 * sizeof(float));
@@ -97,8 +86,8 @@ void *doMedian(void *arg) {
 
 
 void *doMax(void * arg) {
-    float* info = (float *) arg; // Initialize max to the first element of the array
-    float max = info[0];
+    float* info = (float *) arg; 
+     float max = info[0];
     int size = getArraySize(info);
 
     float *returnable = malloc(1 * sizeof(float));
@@ -127,34 +116,23 @@ void *doMin(void * arg){
 }
 
 void *doVariance(void *arg) {
-    // Cast the void pointer to a float pointer
     float* info = (float *)arg;
-
-    // Calculate the size of the array
-    int size = getArraySize(info);  // Assuming getArraySize() is defined elsewhere
-
-    // Calculate the mean
+    int size = getArraySize(info);
     float sum = 0;
-    for (int i = 0; i < size; i++) {  // Start from 0, not 1
+    for (int i = 0; i < size; i++) {  
         sum += info[i];
     }
     float mean = sum / size;
-
-    // Calculate the variance
     float variance = 0;
-    for (int i = 0; i < size; i++) {  // Start from 0, not 1
+    for (int i = 0; i < size; i++) { 
         variance += pow((info[i] - mean), 2);
     }
     variance /= size;
-
-    // Allocate memory for the return value
-    float *returnable = malloc(sizeof(float));  // malloc size for 1 float
+    float *returnable = malloc(sizeof(float)); 
     if (returnable == NULL) {
         perror("Malloc failed");
         exit(EXIT_FAILURE);
     }
-
-    // Store the variance in returnable and return
     *returnable = variance;
     return (void *)returnable;
 }
