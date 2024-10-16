@@ -1,6 +1,6 @@
-// Operating Systems Lab - Session 3. Forks
-// Guillermo Nebra Aljama guillermo.nebra
-// Spencer Johnson spencerjames.johnson
+// Operating Systems Lab - Session 3. Threads
+// Guillermo Nebra Aljama <guillermo.nebra>
+// Spencer Johnson <spencerjames.johnson>
 
 
 // AS WE ARE USING MATH.H, WE KINDLY REQUEST FOR THE FOLLOWING COMPILATION FLAG: -lm 
@@ -17,12 +17,12 @@
 #include <string.h>
 #include <math.h>
 
-// In case we lazy
+// In case we lazy :)
 #define customWrite(x) write(1, x, strlen(x))
 
 int getArraySize(float *data) {
     int size = 0;
-    while (data[size] != '\0') {  // Assuming the array ends with a sentinel value like '\0'
+    while (data[size] != '\0') {  
         size++;
     }
     return size;
@@ -30,7 +30,7 @@ int getArraySize(float *data) {
 
 
 void * doMean(void * arg) {    
-    float* info = (float *) arg; // Initialize max to the first element of the array
+    float* info = (float *) arg; 
     float sum = 0;
     int size = getArraySize(info);
 
@@ -47,62 +47,46 @@ void * doMean(void * arg) {
 int compare(const void *a, const void *b) {
     float fa = *(const float*)a;
     float fb = *(const float*)b;
-    return (fa > fb) - (fa < fb);  // Returns -1, 0, or 1
+    return (fa > fb) - (fa < fb);
 }
 
 void *doMedian(void *arg) {
-    // Cast the void pointer to a float pointer
     float* info = (float *) arg;
-    
-    // Get the size of the array
-    int size = getArraySize(info);  // Assuming getArraySize() is defined elsewhere
+    int size = getArraySize(info);  
 
-    // Allocate memory for a copy of the array to sort
     float* arrCopy = malloc(size * sizeof(float));
     if (arrCopy == NULL) {
         exit(EXIT_FAILURE);
     }
 
-    // Copy the original array elements to arrCopy
     for (int i = 0; i < size; i++) {
         arrCopy[i] = info[i];
     }
 
-    // Sort the copied array
-    qsort(arrCopy, size, sizeof(float), compare);  // Assuming compare() is defined elsewhere
+    qsort(arrCopy, size, sizeof(float), compare);  
 
-    // Calculate the median
     float median;
     int size2 = size / 2;
 
     if (size % 2 == 0) {
-        // If the array size is even, take the average of the two middle elements
         median = (arrCopy[size2 - 1] + arrCopy[size2]) / 2.0;
     } else {
-        // If the array size is odd, take the middle element
         median = arrCopy[size2];
     }
 
-    // Allocate memory for the return value
     float *returnable = malloc(1 * sizeof(float));
     if (returnable == NULL) {
         perror("Malloc failed");
-        free(arrCopy);  // Free the sorted array in case of failure
+        free(arrCopy);  
         exit(EXIT_FAILURE);
     }
 
-    // Store the median in returnable and return
     *returnable = median;
 
-    // Free the copied array
     free(arrCopy);
 
     return (void *) returnable;
 }
-
-
-
-
 
 void *doMax(void * arg) {
     float* info = (float *) arg; 
@@ -156,9 +140,6 @@ void *doVariance(void *arg) {
     return (void *)returnable;
 }
 
-
-
-
 // used to read from file
 char *read_until(int fd, char end) {
     char *string = NULL;
@@ -183,7 +164,7 @@ char *read_until(int fd, char end) {
 
 // ignore the sigint
 
-void sigint_handler(int signo) {
+void sigint_handler() {
 	return;
 }
 
@@ -202,6 +183,8 @@ int main(int argc, char *argv[]) {
         customWrite("Error opening file\n");
         exit(1);
     }
+
+    signal(SIGINT, sigint_handler);
 
     while (1) {
         char *line = read_until(fd, '\n');
@@ -280,34 +263,28 @@ int s1;
     void *res5;
 
 
-   //Make sure join is fine 
     s1 = pthread_join(t1, &res1); 
     if(s1 != 0){
-        printf("pthread_join\n");
         exit (EXIT_FAILURE); 
     }
 
     s2 = pthread_join(t2, &res2); 
     if(s2 != 0){
-        printf("pthread_join\n");
         exit (EXIT_FAILURE); 
     }
 
         s3 = pthread_join(t3, &res3); 
     if(s3 != 0){
-        printf("pthread_join\n");
         exit (EXIT_FAILURE); 
     }
 
         s4 = pthread_join(t4, &res4); 
     if(s4 != 0){
-        printf("pthread_join\n");
         exit (EXIT_FAILURE); 
     }
 
         s5 = pthread_join(t5, &res5); 
     if(s5 != 0){
-        printf("pthread_join\n");
         exit (EXIT_FAILURE); 
     }
 
@@ -325,11 +302,11 @@ int s1;
     write(1, buffer, strlen(buffer));
     free(buffer);
 
-    asprintf(&buffer, "Max: %.5f\n", *(float *)res3);
+    asprintf(&buffer, "Maximum value: %.5f\n", *(float *)res3);
     write(1, buffer, strlen(buffer));
     free(buffer);
 
-    asprintf(&buffer, "Min: %.5f\n", *(float *)res4);
+    asprintf(&buffer, "Minimum value: %.5f\n", *(float *)res4);
     write(1, buffer, strlen(buffer));
     free(buffer);
 
