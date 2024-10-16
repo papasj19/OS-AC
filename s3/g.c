@@ -17,8 +17,6 @@
 #define customWrite(x) write(1, x, strlen(x))
 
 
-
-// Utility function to read until a specific character
 char *read_until(int fd, char end) {
     char *string = NULL;
     char c;
@@ -74,9 +72,20 @@ int main(int argc, char *argv[]) {
         free(line);
     }
 
-    // Free the allocated memory
-    free(data);
     close(fd);  // Close the file descriptor
+
+
+
+
+
+
+
+
+
+
+
+	// DO NOT REMOVE!! WE NEED TO FREEEEEEE
+	free(data);
 
     return 0;
 }
