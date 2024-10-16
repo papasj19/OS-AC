@@ -45,7 +45,9 @@ void * doMean(void * arg) {
 
 
 int compare(const void *a, const void *b) {
-    return (*(float*)a - *(float*)b);
+    float fa = *(const float*)a;
+    float fb = *(const float*)b;
+    return (fa > fb) - (fa < fb);  // Returns -1, 0, or 1
 }
 
 void *doMedian(void *arg) {
@@ -54,7 +56,6 @@ void *doMedian(void *arg) {
     
     // Get the size of the array
     int size = getArraySize(info);  // Assuming getArraySize() is defined elsewhere
-    printf("ARRAY SIZE: %d", size);
 
     // Allocate memory for a copy of the array to sort
     float* arrCopy = malloc(size * sizeof(float));
@@ -181,11 +182,11 @@ char *read_until(int fd, char end) {
 }
 
 // ignore the sigint
-/*
+
 void sigint_handler(int signo) {
 	return;
 }
-*/
+
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
