@@ -215,11 +215,37 @@ int main ( int argc, char* argv[]){
 
 
    //Make sure join is fine 
-    s = pthread_join(t1, &res); 
-    if(s != 0){
+    s1 = pthread_join(t1, &res1); 
+    if(s1 != 0){
         printf("pthread_join\n");
         exit (EXIT_FAILURE); 
     }
+
+    s2 = pthread_join(t2, &res2); 
+    if(s2 != 0){
+        printf("pthread_join\n");
+        exit (EXIT_FAILURE); 
+    }
+
+        s3 = pthread_join(t3, &res3); 
+    if(s3 != 0){
+        printf("pthread_join\n");
+        exit (EXIT_FAILURE); 
+    }
+
+        s4 = pthread_join(t4, &res4); 
+    if(s4 != 0){
+        printf("pthread_join\n");
+        exit (EXIT_FAILURE); 
+    }
+
+        s5 = pthread_join(t5, &res5); 
+    if(s5 != 0){
+        printf("pthread_join\n");
+        exit (EXIT_FAILURE); 
+    }
+
+
 
 
     exit (EXIT_SUCCESS);
