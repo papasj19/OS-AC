@@ -1,0 +1,20 @@
+19
+John Doe#35#180#75#T#T#OK#F#F#F
+Jane Smith#28#165#60#F#T#OK#T#F#T
+Michael Johnson#45#175#80#F#F#KO#T#T#T
+Emily Brown#22#160#50#T#F#OK#F#F#F
+Robert Lee#60#170#70#F#F#KO#T#T#F
+Sarah Wilson#42#155#65#F#T#OK#F#T#F
+David Miller#32#185#90#T#F#OK#F#F#F
+Emma Martinez#50#160#55#T#T#OK#T#F#T
+James Anderson#38#175#70#F#T#OK#T#F#F
+Olivia Thomas#27#170#65#T#T#OK#F#T#F
+William White#33#180#85#F#F#KO#T#F#T
+Sophia Lewis#47#165#60#F#T#OK#F#F#T
+Liam Hall#21#175#70#T#F#OK#T#T#F
+Ava Allen#29#160#50#F#T#OK#T#F#F
+Logan Young#39#180#75#T#F#OK#F#F#F
+Harper Hernandez#55#170#80#F#T#OK#T#F#T
+Elijah King#25#185#90#T#T#OK#T#T#F
+Abigail Wright#48#155#65#F#F#KO#F#F#F
+Benjamin Scott#31#165#60#T#F#OK#T#T#F
