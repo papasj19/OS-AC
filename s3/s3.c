@@ -49,27 +49,44 @@ int compare(const void *a, const void *b) {
 }
 
 void *doMedian(void *arg) {
+    // Cast the void pointer to a float pointer
     float* info = (float *) arg;
-    int size = getArraySize(info);
+    
+    // Get the size of the array
+    int size = getArraySize(info);  // Assuming getArraySize() is defined elsewhere
+    printf("ARRAY SIZE: %d", size);
+
+    // Allocate memory for a copy of the array to sort
     float* arrCopy = malloc(size * sizeof(float));
     if (arrCopy == NULL) {
-        perror("Malloc failed");
         exit(EXIT_FAILURE);
     }
 
+    // Copy the original array elements to arrCopy
     for (int i = 0; i < size; i++) {
         arrCopy[i] = info[i];
     }
 
-    qsort(arrCopy, size, sizeof(float), compare);
-    int size2 = size / 2; 
-    float median = arrCopy[size2];
+    // Sort the copied array
+    qsort(arrCopy, size, sizeof(float), compare);  // Assuming compare() is defined elsewhere
+
+    // Calculate the median
+    float median;
+    int size2 = size / 2;
+
+    if (size % 2 == 0) {
+        // If the array size is even, take the average of the two middle elements
+        median = (arrCopy[size2 - 1] + arrCopy[size2]) / 2.0;
+    } else {
+        // If the array size is odd, take the middle element
+        median = arrCopy[size2];
+    }
 
     // Allocate memory for the return value
     float *returnable = malloc(1 * sizeof(float));
     if (returnable == NULL) {
         perror("Malloc failed");
-        free(arrCopy); // Free the sorted array in case of failure
+        free(arrCopy);  // Free the sorted array in case of failure
         exit(EXIT_FAILURE);
     }
 
@@ -81,6 +98,7 @@ void *doMedian(void *arg) {
 
     return (void *) returnable;
 }
+
 
 
 
