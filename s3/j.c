@@ -21,9 +21,58 @@ void * doMean(void * arg) {
     return (void *) returnable;
 }
 
-void doMedian(){
 
+int compare(const void *a, const void *b) {
+    return (*(float*)a - *(float*)b);
 }
+
+void *doMedian(void *arg) {
+    // Cast the void pointer to a float pointer
+    float* info = (float *) arg;
+
+    // First element contains the size of the array (assuming you pass the size in the array)
+    int size = (int)info[0];  // info[0] stores the size of the array
+
+    // Allocate memory for a copy of the array to sort
+    float* arrCopy = malloc(size * sizeof(float));
+    if (arrCopy == NULL) {
+        perror("Malloc failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Copy the original array elements to arrCopy
+    for (int i = 0; i < size; i++) {
+        arrCopy[i] = info[i + 1];
+    }
+
+    // Sort the copied array
+    qsort(arrCopy, size, sizeof(float), compare);
+
+    // Calculate the median
+    float median;
+    if (size % 2 != 0) {
+        median = arrCopy[size / 2];  // Odd number of elements
+    } else {
+        median = (arrCopy[size / 2 - 1] + arrCopy[size / 2]) / 2.0;  // Even number of elements
+    }
+
+    // Allocate memory for the return value
+    float *returnable = malloc(1 * sizeof(float));
+    if (returnable == NULL) {
+        perror("Malloc failed");
+        free(arrCopy); // Free the sorted array in case of failure
+        exit(EXIT_FAILURE);
+    }
+
+    // Store the median in returnable and return
+    *returnable = median;
+
+    // Free the copied array
+    free(arrCopy);
+
+    return (void *) returnable;
+}
+
 
 
 
@@ -53,8 +102,37 @@ void *doMin(void * arg){
     return (void *) returnable;
 }
 
-void doVar(){
+void *doVariance(void *arg) {
+    // Cast the void pointer to a float pointer
+    float* info = (float *) arg;
 
+    // First element contains the size of the array (assuming you pass size in the array)
+    int size = (int)info[0];  // info[0] stores the size of the array
+
+    // Calculate the mean
+    float sum = 0;
+    for (int i = 1; i <= size; i++) {
+        sum += info[i];
+    }
+    float mean = sum / size;
+
+    // Calculate the variance
+    float variance = 0;
+    for (int i = 1; i <= size; i++) {
+        variance += pow((info[i] - mean), 2);
+    }
+    variance /= size;
+
+    // Allocate memory for the return value
+    float *returnable = malloc(1 * sizeof(float));
+    if (returnable == NULL) {
+        perror("Malloc failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Store the variance in returnable and return
+    *returnable = variance;
+    return (void *) returnable;
 }
 
 
