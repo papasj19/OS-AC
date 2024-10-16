@@ -1,32 +1,82 @@
+// Operating Systems Lab - Session 3
+// Guillermo Nebra Aljama guillermo.nebra
+// Spencer Johnson spencerjames.johnson
+
+#define _XOPEN_SOURCE 500
+#define _POSIX_C_SOURCE 1
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <signal.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <math.h>
+
+// In case we lazy
+#define customWrite(x) write(1, x, strlen(x))
+
+
+
+// Utility function to read until a specific character
+char *read_until(int fd, char end) {
+    char *string = NULL;
+    char c;
+    int i = 0, size;
+
+    while (1) {
+        size = read(fd, &c, sizeof(char));
+        if (string == NULL) {
+            string = (char *)malloc(sizeof(char));
+        }
+        if (c != end && size > 0) {
+            string = (char *)realloc(string, sizeof(char) * (i + 2));
+            string[i++] = c;
+        } else {
+            break;
+        }
+    }
+    string[i] = '\0';
+    return string;
+}
+
+// ignore the sigint
 /*
-    Unit 3 
-    Spencer Johnson spencerjames.johnson    
-    Guillermo Nebra guillermo.nebra
+void sigint_handler(int signo) {
+	return;
+}
 */
 
-#include <pthread.h> 
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <string.h>
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        customWrite("Usage: ./g <file>\n");
+        return 1;
+    }
 
-// utility functions
-char * read_until(int fd, char end) {
-	char *string = NULL;
-	char c;
-	int i = 0, size;
+    float *data = NULL;
+    int size = 0;
 
-	while (1) {
-		size = read(fd, &c, sizeof(char));
-		if(string == NULL){
-			string = (char *) malloc(sizeof(char));
-		}
-		if(c != end && size > 0){
-			string = (char *) realloc(string, sizeof(char)*(i + 2));
-			string[i++] = c;
-		}else{
-			break;
-		}
-	}
-	string[i] = '\0';
-	return string;
+    int fd = open(argv[1], O_RDONLY);
+    if (fd == -1) {
+        customWrite("Error opening file\n");
+        exit(1);
+    }
+
+    while (1) {
+        char *line = read_until(fd, '\n');
+        if (line[0] == '\0') {
+            free(line);
+            break;
+        }
+
+        data = (float *)realloc(data, sizeof(float) * (size + 1));
+        data[size++] = atof(line);  // Store the float value
+        free(line);
+    }
+
+    // Free the allocated memory
+    free(data);
+    close(fd);  // Close the file descriptor
+
+    return 0;
 }
