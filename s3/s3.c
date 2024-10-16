@@ -2,6 +2,9 @@
 // Guillermo Nebra Aljama guillermo.nebra
 // Spencer Johnson spencerjames.johnson
 
+
+// AS WE ARE USING MATH.H, WE KINDLY REQUEST FOR THE FOLLOWING COMPILATION FLAG: -lm 
+
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE 500
 #define _POSIX_C_SOURCE 1
@@ -17,15 +20,26 @@
 // In case we lazy
 #define customWrite(x) write(1, x, strlen(x))
 
+int getArraySize(float *data) {
+    int size = 0;
+    while (data[size] != '\0') {  // Assuming the array ends with a sentinel value like '\0'
+        size++;
+    }
+    return size;
+}
+
 
 void * doMean(void * arg) {    
     float* info = (float *) arg; // Initialize max to the first element of the array
     float sum = 0;
+    int size = getArraySize(info);
+
+
     float *returnable = malloc(1 * sizeof(float));
-    for (int i = 0; i < (int)sizeof(info); i++) {
+    for (int i = 0; i < size; i++) {
         sum += info[i];
     }
-    returnable[0] = sum / sizeof(info);
+    returnable[0] = sum / size;
     return (void *) returnable;
 }
 
@@ -37,9 +51,7 @@ int compare(const void *a, const void *b) {
 void *doMedian(void *arg) {
     // Cast the void pointer to a float pointer
     float* info = (float *) arg;
-
-    // First element contains the size of the array (assuming you pass the size in the array)
-    int size = (int)info[0];  // info[0] stores the size of the array
+    int size = getArraySize(info);
 
     // Allocate memory for a copy of the array to sort
     float* arrCopy = malloc(size * sizeof(float));
@@ -50,7 +62,7 @@ void *doMedian(void *arg) {
 
     // Copy the original array elements to arrCopy
     for (int i = 0; i < size; i++) {
-        arrCopy[i] = info[i + 1];
+        arrCopy[i] = info[i];
     }
 
     // Sort the copied array
@@ -87,8 +99,10 @@ void *doMedian(void *arg) {
 void *doMax(void * arg) {
     float* info = (float *) arg; // Initialize max to the first element of the array
     float max = info[0];
+    int size = getArraySize(info);
+
     float *returnable = malloc(1 * sizeof(float));
-    for (int i = 1; i < (int)sizeof(arg); i++) {
+    for (int i = 1; i < size; i++) {
         if (info[i] > max) {
             max = info[i]; 
         }
@@ -100,8 +114,10 @@ void *doMax(void * arg) {
 void *doMin(void * arg){
     float* info = (float *) arg; 
     float max = info[0];
+    int size = getArraySize(info);
+
     float *returnable = malloc(1 * sizeof(float));
-    for (int i = 1; i < (int)sizeof(arg); i++) {
+    for (int i = 1; i < size; i++) {
         if (info[i] < max) {
             max = info[i]; 
         }
@@ -112,27 +128,27 @@ void *doMin(void * arg){
 
 void *doVariance(void *arg) {
     // Cast the void pointer to a float pointer
-    float* info = (float *) arg;
+    float* info = (float *)arg;
 
-    // First element contains the size of the array (assuming you pass size in the array)
-    int size = (int)info[0];  // info[0] stores the size of the array
+    // Calculate the size of the array
+    int size = getArraySize(info);  // Assuming getArraySize() is defined elsewhere
 
     // Calculate the mean
     float sum = 0;
-    for (int i = 1; i <= size; i++) {
+    for (int i = 0; i < size; i++) {  // Start from 0, not 1
         sum += info[i];
     }
     float mean = sum / size;
 
     // Calculate the variance
     float variance = 0;
-    for (int i = 1; i <= size; i++) {
+    for (int i = 0; i < size; i++) {  // Start from 0, not 1
         variance += pow((info[i] - mean), 2);
     }
     variance /= size;
 
     // Allocate memory for the return value
-    float *returnable = malloc(1 * sizeof(float));
+    float *returnable = malloc(sizeof(float));  // malloc size for 1 float
     if (returnable == NULL) {
         perror("Malloc failed");
         exit(EXIT_FAILURE);
@@ -140,8 +156,9 @@ void *doVariance(void *arg) {
 
     // Store the variance in returnable and return
     *returnable = variance;
-    return (void *) returnable;
+    return (void *)returnable;
 }
+
 
 
 
@@ -265,9 +282,6 @@ int s1;
     void *res4;
     void *res5;
 
-    
-
-
 
    //Make sure join is fine 
     s1 = pthread_join(t1, &res1); 
@@ -303,6 +317,30 @@ int s1;
 
 	// DO NOT REMOVE!! WE NEED TO FREEEEEEE
 	free(data);
+
+    // print all the res variables
+    char *buffer;
+    asprintf(&buffer, "Mean: %.5f\n", *(float *)res1);
+    write(1, buffer, strlen(buffer));
+    free(buffer);
+
+    asprintf(&buffer, "Median: %.5f\n", *(float *)res2);
+    write(1, buffer, strlen(buffer));
+    free(buffer);
+
+    asprintf(&buffer, "Max: %.5f\n", *(float *)res3);
+    write(1, buffer, strlen(buffer));
+    free(buffer);
+
+    asprintf(&buffer, "Min: %.5f\n", *(float *)res4);
+    write(1, buffer, strlen(buffer));
+    free(buffer);
+
+    asprintf(&buffer, "Variance: %f\n", *(float *)res5);
+    write(1, buffer, strlen(buffer));
+    free(buffer);
+
+
 
 
     exit (EXIT_SUCCESS);
