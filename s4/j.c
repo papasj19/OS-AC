@@ -204,8 +204,7 @@ int main(int argc, char *argv[])
                     response[i] = '\0';  // Null-terminate the string
                 }
 
-                printf("\n\nMY ANSWER IS %s | Length: %ld\n\n", response, strlen(response));
-
+                
                 // Calculate the required size for frame based on the response length
                 size_t frame_size = strlen(response) + 4;  // 4 bytes for "2\n" and "\n\0"
                 frame = realloc(frame, frame_size);  // Reallocate memory for frame
