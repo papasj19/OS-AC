@@ -86,8 +86,11 @@ void send_frame(int sockfd, const char *message) {
 
 
 void receive_response(int sockfd) {
-    char buffer[120];
-    ssize_t bytes_received = read(sockfd, buffer, sizeof(buffer) - 1);
+    char *buffer;
+    buffer = read_until(sockfd, '\n');
+    ssize_t bytes_received = strlen(buffer);
+    
+    //ssize_t bytes_received = read(sockfd, buffer, sizeof(buffer) - 1);
 
     if (bytes_received < 0) {
         printF("Error reading from server\n");
