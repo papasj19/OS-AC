@@ -2,7 +2,7 @@
 // Guillermo Nebra Aljama <guillermo.nebra>
 // Spencer Johnson <spencerjames.johnson>
 
-//9655-9659 my ports
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,11 +11,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define SERVER_IP2 "192.168.1.4" 
-#define SERVER_IP "172.16.205.4" 
-#define PORT 9655
-
-#define UNEXPECTED_FRAME "Recived an unexpected frame from server, exiting\n"
 
 #define printF(x) write(1, x, strlen(x))
 
@@ -59,25 +54,12 @@ char* print_menu() {
 }
 
 
-/*
-void sigintHandler()
-{
-    // Do nothing
-    signal(SIGINT, sigintHandler);
-}
-*/
-
-
-
-
-
 int connectToServer(char *address, int port)
 {
     struct sockaddr_in server;
-    // Create socket
     serverFd = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverFd == -1)
-    {
+    
+    if (serverFd == -1) {
         printF("Error creating the socket!\n");
         exit(-2);
     }
@@ -87,8 +69,7 @@ int connectToServer(char *address, int port)
     server.sin_port = htons(port);
 
     // Connect to remote server
-    if (connect(serverFd, (struct sockaddr *)&server, sizeof(server)) < 0)
-    {
+    if (connect(serverFd, (struct sockaddr *)&server, sizeof(server)) < 0) {
         printF("Error connecting to the server!\n");
         close(serverFd);
         exit(-2);
@@ -104,7 +85,6 @@ void send_frame(int sockfd, const char *message) {
 }
 
 
-// Function to receive data from the server
 void receive_response(int sockfd) {
     char buffer[120];
     ssize_t bytes_received = read(sockfd, buffer, sizeof(buffer) - 1);
@@ -123,114 +103,100 @@ void receive_response(int sockfd) {
 }
 
 
-// Function to read input from the user using dynamic memory
+
 char* readInput() {
     char *input = NULL;
     size_t size = 0;
     char c;
     int i = 0;
 
-    // Dynamically read each character until newline
     while (read(STDIN_FILENO, &c, 1) > 0 && c != '\n') {
         input = realloc(input, size + 2);
         input[i++] = c;
         size++;
     }
     if (input != NULL) {
-        input[i] = '\0';  // Null-terminate the string
+        input[i] = '\0';  
     }
+
     return input;
 }
 
 
-
-
-
-int main(int argc, char *argv[])
-{
-
-
-   
-
-    
+int main(int argc, char *argv[]) {
 
     if (argc != 3)
     {
         printF("Number of parameters incorrect!\n");
         return -1;
     }
+
     char *server_ip = argv[1];
     int server_port = atoi(argv[2]);
 
     int sockfd = connectToServer(server_ip, server_port);
 
-
     printF("Welcome to RiddleQuest!\nEnter your name: ");
-    char *username = readInput();  // Dynamic memory for user input
+    char *username = readInput();
 
-    char *frame = malloc(strlen(username) + 2);  // Allocate memory for frame
-    snprintf(frame, strlen(username) + 2, "%s\n", username);  // Prepare frame
+    char *frame = malloc(strlen(username) + 2);
+    snprintf(frame, strlen(username) + 2, "%s\n", username);
     send_frame(sockfd, frame);
 
-    //free(frame);    // Free dynamically allocated memory
-    free(username); // Free dynamically allocated memory
-
-    
-
+    free(username);
 
       while (1) {
         int choice = atoi(print_menu());
+
         switch (choice) {
-            case 1:  // Request Current Challenge
+            case 1:  // challenge
                 send_frame(sockfd, "1\n");
                 receive_response(sockfd);
                 break;
-            case 2:  // Send Response to Challenge
+
+            case 2:  // Response
                 printF("Enter your response: ");
-                
-                // Dynamically allocate memory for the response
+
                 char *response = NULL;
                 size_t response_size = 0;
                 char c;
                 int i = 0;
 
-                // Use read() to capture user input, allowing for spaces
                 while (read(STDIN_FILENO, &c, 1) > 0 && c != '\n') {
                     response = realloc(response, response_size + 2);
                     response[i++] = c;
                     response_size++;
                 }
                 if (response != NULL) {
-                    response[i] = '\0';  // Null-terminate the string
+                    response[i] = '\0';
                 }
-
                 
-                // Calculate the required size for frame based on the response length
-                size_t frame_size = strlen(response) + 4;  // 4 bytes for "2\n" and "\n\0"
-                frame = realloc(frame, frame_size);  // Reallocate memory for frame
+                size_t frame_size = strlen(response) + 4;  
+                frame = realloc(frame, frame_size);
 
                 if (frame == NULL) {
                     printF("Memory allocation failed!\n");
                     exit(EXIT_FAILURE);
                 }
 
-                snprintf(frame, frame_size, "2\n%s\n", response);  // Create the frame
-                send_frame(sockfd, frame);  // Send the frame
+                snprintf(frame, frame_size, "2\n%s\n", response);
+                send_frame(sockfd, frame);
                 receive_response(sockfd);
 
-                // Free dynamically allocated memory for the response
                 free(response);
                 break;
 
-            case 3:  // Request Hint
+            case 3:  // Hint
                 send_frame(sockfd, "3\n");
                 receive_response(sockfd);
                 break;
-            case 4:  // View Current Mission Status
+
+            case 4:  // Mission status
                 send_frame(sockfd, "4\n");
                 receive_response(sockfd);
                 break;
-            case 5:  // Terminate Connection and Exit
+
+            case 5:  // Disconnect
                 send_frame(sockfd, "5\n");
                 printF("Terminating connection and exiting...\n");
                 close(sockfd);
@@ -241,4 +207,5 @@ int main(int argc, char *argv[])
     }
 
     close(serverFd);
+    free(frame);
 }
