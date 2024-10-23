@@ -15,11 +15,12 @@
 #include <string.h>
 #include <math.h>
 
-
+// Shortcut for printing to stdout
+#define printF(x) write(1, x, strlen(x))
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        customWrite("Usage: ./g <file>\n");
+        printF("Usage: ./g <server_ip> <port>\n");
         return 1;
     }
 
