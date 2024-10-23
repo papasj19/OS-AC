@@ -44,7 +44,7 @@ char * read_until(int fd, char end) {
 }
 
 
-int print_menu() {
+char* print_menu() {
     char *choice;
 
     printF("\n=== RiddleQuest Menu ===\n");
@@ -54,7 +54,7 @@ int print_menu() {
     printF("4- View Current Mission Status\n");
     printF("5- Terminate Connection and Exit\n");
     printF("Choose an option: ");
-    read_until(0, &choice);
+    choice = read_until(0, '\n');
     return choice;
 }
 
@@ -109,19 +109,37 @@ void receive_response(int sockfd) {
     ssize_t bytes_received = read(sockfd, buffer, sizeof(buffer) - 1);
 
     if (bytes_received < 0) {
-        writeOutput("Error reading from server\n");
+        printF("Error reading from server\n");
     } else if (bytes_received == 0) {
-        writeOutput("Server closed the connection\n");
+        printF("Server closed the connection\n");
         exit(EXIT_FAILURE);
     } else {
         buffer[bytes_received] = '\0';  // Null-terminate the received string
-        writeOutput("Server: ");
-        writeOutput(buffer);
-        writeOutput("\n");
+        printF("Server: ");
+        printF(buffer);
+        printF("\n");
     }
 }
 
 
+// Function to read input from the user using dynamic memory
+char* readInput() {
+    char *input = NULL;
+    size_t size = 0;
+    char c;
+    int i = 0;
+
+    // Dynamically read each character until newline
+    while (read(STDIN_FILENO, &c, 1) > 0 && c != '\n') {
+        input = realloc(input, size + 2);
+        input[i++] = c;
+        size++;
+    }
+    if (input != NULL) {
+        input[i] = '\0';  // Null-terminate the string
+    }
+    return input;
+}
 
 
 
@@ -130,10 +148,9 @@ void receive_response(int sockfd) {
 int main(int argc, char *argv[])
 {
 
-    int i, j;
 
    
-    char *buffer, *frame;
+
     
 
     if (argc != 3)
@@ -141,13 +158,13 @@ int main(int argc, char *argv[])
         printF("Number of parameters incorrect!\n");
         return -1;
     }
-    const char *server_ip = argv[1];
+    char *server_ip = argv[1];
     int server_port = atoi(argv[2]);
 
-    int sockfd = connect_to_server(server_ip, server_port);
+    int sockfd = connectToServer(server_ip, server_port);
 
 
-    writeOutput("Welcome to RiddleQuest!\nEnter your name: ");
+    printF("Welcome to RiddleQuest!\nEnter your name: ");
     char *username = readInput();  // Dynamic memory for user input
 
     char *frame = malloc(strlen(username) + 2);  // Allocate memory for frame
@@ -161,7 +178,7 @@ int main(int argc, char *argv[])
 
 
       while (1) {
-        int choice = print_menu();
+        int choice = atoi(print_menu());
         switch (choice) {
             case 1:  // Request Current Challenge
                 send_frame(sockfd, "1\n");
