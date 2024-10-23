@@ -59,12 +59,13 @@ char* print_menu() {
 }
 
 
-
+/*
 void sigintHandler()
 {
     // Do nothing
     signal(SIGINT, sigintHandler);
 }
+*/
 
 
 
@@ -171,7 +172,7 @@ int main(int argc, char *argv[])
     snprintf(frame, strlen(username) + 2, "%s\n", username);  // Prepare frame
     send_frame(sockfd, frame);
 
-    free(frame);    // Free dynamically allocated memory
+    //free(frame);    // Free dynamically allocated memory
     free(username); // Free dynamically allocated memory
 
     
@@ -185,13 +186,43 @@ int main(int argc, char *argv[])
                 receive_response(sockfd);
                 break;
             case 2:  // Send Response to Challenge
-                printf("Enter your response: ");
-                char response[50];
-                scanf("%s", response);
-                snprintf(frame, sizeof(frame), "2\n%s\n", response);
-                send_frame(sockfd, frame);
+                printF("Enter your response: ");
+                
+                // Dynamically allocate memory for the response
+                char *response = NULL;
+                size_t response_size = 0;
+                char c;
+                int i = 0;
+
+                // Use read() to capture user input, allowing for spaces
+                while (read(STDIN_FILENO, &c, 1) > 0 && c != '\n') {
+                    response = realloc(response, response_size + 2);
+                    response[i++] = c;
+                    response_size++;
+                }
+                if (response != NULL) {
+                    response[i] = '\0';  // Null-terminate the string
+                }
+
+                printf("\n\nMY ANSWER IS %s | Length: %ld\n\n", response, strlen(response));
+
+                // Calculate the required size for frame based on the response length
+                size_t frame_size = strlen(response) + 4;  // 4 bytes for "2\n" and "\n\0"
+                frame = realloc(frame, frame_size);  // Reallocate memory for frame
+
+                if (frame == NULL) {
+                    printF("Memory allocation failed!\n");
+                    exit(EXIT_FAILURE);
+                }
+
+                snprintf(frame, frame_size, "2\n%s\n", response);  // Create the frame
+                send_frame(sockfd, frame);  // Send the frame
                 receive_response(sockfd);
+
+                // Free dynamically allocated memory for the response
+                free(response);
                 break;
+
             case 3:  // Request Hint
                 send_frame(sockfd, "3\n");
                 receive_response(sockfd);
@@ -202,11 +233,11 @@ int main(int argc, char *argv[])
                 break;
             case 5:  // Terminate Connection and Exit
                 send_frame(sockfd, "5\n");
-                printf("Terminating connection and exiting...\n");
+                printF("Terminating connection and exiting...\n");
                 close(sockfd);
                 exit(EXIT_SUCCESS);
             default:
-                printf("Invalid choice. Please try again.\n");
+                printF("Invalid choice. Please try again.\n");
         }
     }
 

@@ -3,6 +3,9 @@
 // Spencer Johnson <spencerjames.johnson>
 
 
+// Spencer's ports:     9655-9659
+// Guillermo's ports:   9680-9684
+
 #define _GNU_SOURCE
 #define _XOPEN_SOURCE 500
 #define _POSIX_C_SOURCE 1
