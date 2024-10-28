@@ -1,0 +1,52 @@
+Álava:Hospital de Txagorritxu
+Albacete:Complejo Hospitalario Universitario de Albacete
+Alicante:Hospital General Universitario Dr. Balmis
+Almería:Hospital Universitario Torrecárdenas
+Ávila:Hospital Nuestra Señora de Sonsoles
+Badajoz:HUB - Hospital Universitario de Badajoz
+Islas Balears:Hospital Joan March
+Barcelona:Hospital Clínic de Barcelona
+Burgos:Hospital Universitario de Burgos (HUBU)
+Cáceres:Hospital San Pedro de Alcántara
+Cádiz:Hospital Universitario Puerta del Mar
+Castellón:Hospital General Universitario de Castellón
+Ciudad Real:Hospital Quirónsalud Ciudad Real
+Córdoba:Hospital Universitario Reina Sofía
+A Coruña:Hospital HM Modelo
+Cuenca:Hospital Virgen de la Luz
+Girona:Hospital Universitario de Gerona Doctor Josep Trueta
+Granada:Hospital Universitario Virgen de las Nieves
+Guadalajara:Hospital Universitario de Guadalajara
+Gipuzkoa:Hospital Universitario Donostia
+Huelva:Hospital Universitario Juan Ramón Jiménez
+Huesca:Hospital Universitario San Jorge
+Jaén:Complejo Hospitalario de Jaén
+León:Hospital Universitario de León
+Lleida:Hospital Universitario Arnau de Vilanova
+La Rioja:Hospital General de La Rioja
+Lugo:Hospital Universitario Lucus Augusti
+Madrid:Hospital Universitario Santa Cristina
+Málaga:Hospital Regional Universitario de Málaga
+Murcia:Hospital Universitario Reina Sofía
+Navarra:Complejo Hospitalario de Navarra
+Ourense:Complejo Hospitalario Universitario de Ourense - CHUO
+Asturias:Hospital Universitario de Cabueñes
+Palencia:Hospital General Río Carrión
+Las Palmas:Hospital Universitario de Gran Canaria 
+Pontevedra:Hospital Provincial de Pontevedra
+Salamanca:Complejo Asistencial Universitario de Salamanca
+Santa Cruz de Tenerife:Hospital Universitario Nuestra Señora de Candelaria
+Cantabria:Hospital Universitario Marqués de Valdecilla
+Segovia:Hospital General de Segovia
+Sevilla:Hospital San Juan de Dios
+Soria:Hospital Virgen del Mirón
+Tarragona:Hospital Universitario de Tarragona Juan XXIII
+Teruel:Hospital Público San José
+Toledo:Hospital Provincial de Toledo
+Valencia:Consorcio Hospital General Universitario de Valencia
+Valladolid:Hospital Universitario Río Hortega
+Bizkaia:Hospital Universitario Basurto
+Zamora:Complejo Público Asistencial de Zamora
+Zaragoza:Hospital Universitario Miguel Servet
+Ceuta:Hospital Universitario de Ceuta
+Melilla:Hospital Universitario de Melilla
