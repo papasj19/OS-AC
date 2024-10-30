@@ -82,7 +82,7 @@ void send_frame(int sockfd, const char *message) {
 }
 
 void process_client(int client_fd) {
-    send_frame(client_fd, "Welcome to RiddleQuest!\n");
+    //send_frame(client_fd, "Welcome to RiddleQuest!\n");
 
     char *username = read_until(client_fd, '\n');
     customWrite("User connected: ");
@@ -92,7 +92,7 @@ void process_client(int client_fd) {
     int current_challenge = 0;
 
     while (1) {
-        send_frame(client_fd, "Choose an option:\n1- Request Current Challenge\n2- Send Response\n3- Request Hint\n4- View Status\n5- Exit\n");
+        //send_frame(client_fd, "Choose an option:\n1- Request Current Challenge\n2- Send Response\n3- Request Hint\n4- View Status\n5- Exit\n");
 
         char *choice = read_until(client_fd, '\n');
         switch (atoi(choice)) {
@@ -121,11 +121,14 @@ void process_client(int client_fd) {
                 send_frame(client_fd, challenges[current_challenge].hint);
                 send_frame(client_fd, "\n");
                 break;
-            case 4:
-                asprintf(&choice, "Current Challenge: %d\n", current_challenge + 1);
-                send_frame(client_fd, choice);
-                free(choice);
+            case 4: {
+                char *status_message;
+                asprintf(&status_message, "Current Challenge: %d\n", current_challenge + 1);
+                send_frame(client_fd, status_message);
+                free(status_message); // Free only this temporary message
                 break;
+            }
+
             case 5:
                 send_frame(client_fd, "Goodbye!\n");
                 close(client_fd);
