@@ -254,7 +254,7 @@ void process_client(int client_fd) {
                 free(username);
                 return;
             default:
-                send_frame(client_fd, "Invalid option.\n");
+                send_frame(client_fd, "Opcion invalida. Por favor intente de neuvo\n");
         }
         free(choice);
     }
