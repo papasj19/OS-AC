@@ -34,7 +34,44 @@ void customWrite(const char *message) {
     write(STDOUT_FILENO, message, strlen(message));
 }
 
+void print_ascii_art() {
+    char *line;
+
+    asprintf(&line, CYAN "  _______\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN " \\/_____;__.—\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "  |         |\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "   . ())oo() .\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "   \\(%()*^^()^/ \n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "    | -_%------|\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "    | %      ))\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "    \\ %______|\n" RESET);
+    customWrite(line);
+    free(line);
+}
+
 void welcomeMessage() {
+    print_ascii_art();
     char *message;
     asprintf(&message, CYAN "Welcome to the Guardian of Enigmas Server. Prepare to embark on a journey of puzzles and mysteries!\n" RESET);
     customWrite(message);
