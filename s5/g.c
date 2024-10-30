@@ -34,7 +34,44 @@ void customWrite(const char *message) {
     write(STDOUT_FILENO, message, strlen(message));
 }
 
+void print_ascii_art() {
+    char *line;
+
+    asprintf(&line, CYAN "  _______\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN " \\/_____;__.—\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "  |         |\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "   . ())oo() .\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "   \\(%%()*^^()^/ \n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "    | -_%%------|\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "    | %%      ))\n" RESET);
+    customWrite(line);
+    free(line);
+
+    asprintf(&line, CYAN "    \\ %%______|\n" RESET);
+    customWrite(line);
+    free(line);
+}
+
 void welcomeMessage() {
+    print_ascii_art();
     char *message;
     asprintf(&message, CYAN "Welcome to the Guardian of Enigmas Server. Prepare to embark on a journey of puzzles and mysteries!\n" RESET);
     customWrite(message);
@@ -43,28 +80,29 @@ void welcomeMessage() {
 
 void reqChall(const char *username) {
     char *message;
-    asprintf(&message, YELLOW "%s — request challenge...\n" RESET, username);
+    asprintf(&message, BLUE "%s — request challenge...\n" RESET, username);
     customWrite(message);
     free(message);
 }
 
 void sendAns(const char *username) {
     char *message;
-    asprintf(&message, YELLOW "%s — sending answer...\n" RESET, username);
+    asprintf(&message, BLUE "%s — sending answer...\n" RESET, username);
     customWrite(message);
     free(message);
 }
 
+
 void checkAns() {
     char *message;
-    asprintf(&message, BLUE "Checking answer...\n" RESET);
+    asprintf(&message, YELLOW "Checking answer...\n" RESET);
     customWrite(message);
     free(message);
 }
 
 void giveHint(const char *username) {
     char *message;
-    asprintf(&message, YELLOW "%s — request hint...\n" RESET, username);
+    asprintf(&message, BLUE "%s — request hint...\n" RESET, username);
     customWrite(message);
     free(message);
 }
@@ -79,6 +117,13 @@ void hinTGiven() {
 void viewStatus(const char *username) {
     char *message;
     asprintf(&message, YELLOW "%s — request to view current mission status...\n" RESET, username);
+    customWrite(message);
+    free(message);
+}
+
+void terminateConnMessage(const char *username) {
+    char *message;
+    asprintf(&message, CYAN "%s - decide to terminate the connection\n" RESET, username);
     customWrite(message);
     free(message);
 }
@@ -135,7 +180,7 @@ void parse_challenges(const char *filename) {
 
 
 void send_frame(int sockfd, const char *message) {
-    if (message == NULL) return;  // Prevent sending a NULL pointer
+    if (message == NULL) return;  
     size_t length = strlen(message);
     write(sockfd, message, length);
 }
@@ -148,20 +193,13 @@ void welcomeUser(const char *username) {
 }
 
 void process_client(int client_fd) {
-    //send_frame(client_fd, "Welcome to RiddleQuest!\n");
 
     char *username = read_until(client_fd, '\n');
     welcomeUser(username);
 
-    
-    //customWrite("User connected: ");
-    //customWrite(username);
-    //customWrite("\n");
-
     int current_challenge = 0;
 
     while (1) {
-        //send_frame(client_fd, "Choose an option:\n1- Request Current Challenge\n2- Send Response\n3- Request Hint\n4- View Status\n5- Exit\n");
 
         char *choice = read_until(client_fd, '\n');
         switch (atoi(choice)) {
@@ -173,11 +211,12 @@ void process_client(int client_fd) {
             case 2: {
                 sendAns(username);
                 char *response = read_until(client_fd, '\n');
+                checkAns();
                 if (strcmp(response, challenges[current_challenge].answer) == 0) {
-                    send_frame(client_fd, "Correct answer!\n");
+                    send_frame(client_fd, "Correct answer! Proceeding to the next challenge\n");
                     current_challenge++;
                     if (current_challenge >= total_challenges) {
-                        send_frame(client_fd, "Congratulations! You've completed all challenges!\n");
+                        send_frame(client_fd, "Congratulations! You've completed all challenges. Press 4 to get the treasure coordinates.\n");
                         close(client_fd);
                         free(response);
                         return;
@@ -199,8 +238,9 @@ void process_client(int client_fd) {
                 char *status_message;
                 asprintf(&status_message, "Current Challenge: %d\n", current_challenge + 1);
                 
-                // Debug: Print the status message to confirm it's correct
-                printf("Sending status message: %s", status_message); // Should show the full string
+                if (current_challenge >= total_challenges) {
+                    asprintf(&status_message, "Congratulations! You've found the treasure at coordinates: X:100, Y:200. Disconnecting.\n");
+                }
                 
                 send_frame(client_fd, status_message);
                 free(status_message); // Free only this temporary message
@@ -209,13 +249,14 @@ void process_client(int client_fd) {
 
 
             case 5:
-
+                terminateConnMessage(username);
                 send_frame(client_fd, "Goodbye!\n");
                 close(client_fd);
                 free(username);
                 return;
             default:
-                send_frame(client_fd, "Invalid option.\n");
+                send_frame(client_fd, "Opción no valida. Por favor intente de nuevo.\n");
+
         }
         free(choice);
     }
