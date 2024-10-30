@@ -11,6 +11,12 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 
+#define RESET "\x1b[0m"
+#define YELLOW "\x1b[33m"
+#define BLUE "\x1b[34m"
+#define CYAN "\x1b[36m"
+#define GREEN "\x1b[32m"
+
 #define CHALLENGE_FILE "challenges.txt"
 #define BUFFER_SIZE 1024
 #define MAX_QUESTIONS 50
@@ -27,6 +33,57 @@ int total_challenges = 0;
 void customWrite(const char *message) {
     write(STDOUT_FILENO, message, strlen(message));
 }
+
+void welcomeMessage() {
+    char *message;
+    asprintf(&message, CYAN "Welcome to the Guardian of Enigmas Server. Prepare to embark on a journey of puzzles and mysteries!\n" RESET);
+    customWrite(message);
+    free(message);
+}
+
+void reqChall(const char *username) {
+    char *message;
+    asprintf(&message, YELLOW "%s — request challenge...\n" RESET, username);
+    customWrite(message);
+    free(message);
+}
+
+void sendAns(const char *username) {
+    char *message;
+    asprintf(&message, YELLOW "%s — sending answer...\n" RESET, username);
+    customWrite(message);
+    free(message);
+}
+
+void checkAns() {
+    char *message;
+    asprintf(&message, BLUE "Checking answer...\n" RESET);
+    customWrite(message);
+    free(message);
+}
+
+void giveHint(const char *username) {
+    char *message;
+    asprintf(&message, YELLOW "%s — request hint...\n" RESET, username);
+    customWrite(message);
+    free(message);
+}
+
+void hinTGiven() {
+    char *message;
+    asprintf(&message, GREEN "Hint sent!\n" RESET);
+    customWrite(message);
+    free(message);
+}
+
+void viewStatus(const char *username) {
+    char *message;
+    asprintf(&message, YELLOW "%s — request to view current mission status...\n" RESET, username);
+    customWrite(message);
+    free(message);
+}
+
+
 
 
 char* read_until(int fd, char end) {
@@ -78,16 +135,28 @@ void parse_challenges(const char *filename) {
 
 
 void send_frame(int sockfd, const char *message) {
-    write(sockfd, message, strlen(message));
+    if (message == NULL) return;  // Prevent sending a NULL pointer
+    size_t length = strlen(message);
+    write(sockfd, message, length);
+}
+
+void welcomeUser(const char *username) {
+    char *message;
+    asprintf(&message, "Welcome, %s!\n", username);
+    customWrite(message);
+    free(message);
 }
 
 void process_client(int client_fd) {
     //send_frame(client_fd, "Welcome to RiddleQuest!\n");
 
     char *username = read_until(client_fd, '\n');
-    customWrite("User connected: ");
-    customWrite(username);
-    customWrite("\n");
+    welcomeUser(username);
+
+    
+    //customWrite("User connected: ");
+    //customWrite(username);
+    //customWrite("\n");
 
     int current_challenge = 0;
 
@@ -97,10 +166,12 @@ void process_client(int client_fd) {
         char *choice = read_until(client_fd, '\n');
         switch (atoi(choice)) {
             case 1:
+                reqChall(username);
                 send_frame(client_fd, challenges[current_challenge].question);
                 send_frame(client_fd, "\n");
                 break;
             case 2: {
+                sendAns(username);
                 char *response = read_until(client_fd, '\n');
                 if (strcmp(response, challenges[current_challenge].answer) == 0) {
                     send_frame(client_fd, "Correct answer!\n");
@@ -118,18 +189,27 @@ void process_client(int client_fd) {
                 break;
             }
             case 3:
+                giveHint(username);
                 send_frame(client_fd, challenges[current_challenge].hint);
                 send_frame(client_fd, "\n");
+                hinTGiven();
                 break;
             case 4: {
+                viewStatus(username);
                 char *status_message;
                 asprintf(&status_message, "Current Challenge: %d\n", current_challenge + 1);
+                
+                // Debug: Print the status message to confirm it's correct
+                printf("Sending status message: %s", status_message); // Should show the full string
+                
                 send_frame(client_fd, status_message);
                 free(status_message); // Free only this temporary message
                 break;
             }
 
+
             case 5:
+
                 send_frame(client_fd, "Goodbye!\n");
                 close(client_fd);
                 free(username);
@@ -169,6 +249,8 @@ int main(int argc, char *argv[]) {
     }
 
     listen(server_fd, 5);
+
+    welcomeMessage("Guardian of Enigmas");
 
     while (1) {
         int client_fd = accept(server_fd, NULL, NULL);
