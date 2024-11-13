@@ -261,7 +261,6 @@ void process_client(int client_fd) {
                 send_frame(client_fd, "Opción no valida. Por favor intente de nuevo.\n");
 
         }
-        }
         free(choice);
     }
 }
