@@ -19,7 +19,7 @@
 
 #define CHALLENGE_FILE "challenges.txt"
 #define BUFFER_SIZE 1024
-#define MAX_QUESTIONS 50
+#define MAX_QUESTIONS 10
 
 typedef struct {
     char *question;
@@ -27,7 +27,7 @@ typedef struct {
     char *hint;
 } Challenge;
 
-Challenge challenges[10];
+Challenge challenges[MAX_QUESTIONS];
 int total_challenges = 0;
 
 void customWrite(const char *message) {
@@ -198,9 +198,10 @@ void process_client(int client_fd) {
     welcomeUser(username);
 
     int current_challenge = 0;
+    int myFlag = 0; 
+
 
     while (1) {
-
         char *choice = read_until(client_fd, '\n');
         switch (atoi(choice)) {
             case 1:
@@ -212,7 +213,11 @@ void process_client(int client_fd) {
                 sendAns(username);
                 char *response = read_until(client_fd, '\n');
                 checkAns();
-                if (strcmp(response, challenges[current_challenge].answer) == 0) {
+                if(current_challenge+1 >= total_challenges){
+                    myFlag = 1;
+                    
+                }
+                if (strcmp(response, challenges[current_challenge].answer) == 0 && myFlag == 0) {
                     send_frame(client_fd, "Correct answer! Proceeding to the next challenge\n");
                     current_challenge++;
                     if (current_challenge >= total_challenges) {
@@ -222,7 +227,11 @@ void process_client(int client_fd) {
                         return;
                     }
                 } else {
-                    send_frame(client_fd, "Incorrect answer, try again.\n");
+                    if (myFlag == 1) {
+                        send_frame(client_fd, "Congratulations! You've completed all challenges. Press 4 to get the treasure coordinates.\n");
+                    } else {
+                        send_frame(client_fd, "Incorrect answer, try again.\n");
+                    }
                 }
                 free(response);
                 break;
@@ -236,14 +245,17 @@ void process_client(int client_fd) {
             case 4: {
                 viewStatus(username);
                 char *status_message;
-                asprintf(&status_message, "Current Challenge: %d\n", current_challenge + 1);
+                //asprintf(&status_message, "Current Challenge: %d\n", current_challenge + 1);
                 
-                if (current_challenge >= total_challenges) {
+                if (myFlag == 1) {
                     asprintf(&status_message, "Congratulations! You've found the treasure at coordinates: X:100, Y:200. Disconnecting.\n");
+                }
+                else {
+                    asprintf(&status_message, "Current Challenge: %d\n", current_challenge + 1);
                 }
                 
                 send_frame(client_fd, status_message);
-                free(status_message); // Free only this temporary message
+                free(status_message);
                 break;
             }
 
@@ -258,6 +270,7 @@ void process_client(int client_fd) {
                 send_frame(client_fd, "Opción no valida. Por favor intente de nuevo.\n");
 
         }
+        
         free(choice);
     }
 }
