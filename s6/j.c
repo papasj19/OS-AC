@@ -20,6 +20,8 @@
 #define C_GREEN "\033[32m"
 #define C_YELLOW    "\033[33m"
 
+#define STATIONS 3
+
 
 
 void doPipe(int fileFd){
@@ -106,3 +108,87 @@ int main(int argc, char *argv[]){
         customWrite("Invalid number of arguments\n");
         return -1;
     }
+
+
+    int shmid;
+    if ((shmid = shmget(IPC_PRIVATE, sizeof(int), IPC_CREAT | 0666)) < 0)
+    {
+        printF("Error creating shared memory\n");
+        exit(-3);
+    }
+
+
+    int pipes[STATIONS][2];
+    pid_t pids[STATIONS];
+
+    for (int i = 0; i < STATIONS; i++) {
+        if (pipe(pipes[i]) == -1) {
+            perror("pipe creation failed");
+            exit(1);
+        }
+
+        if ((pids[i] = fork()) == 0) {  // Child process (station)
+            close(pipes[i][0]);  // Close read end in child
+            // Station process code here (not shown in this section)
+            exit(0);
+        } else if (pids[i] < 0) {
+            perror("fork failed");
+            exit(1);
+        }
+
+        // Control Center keeps only the read end
+        close(pipes[i][1]);
+    }
+
+      // 3. Control Center Waiting and Processing Reports
+    int *passenger_counts;
+    int active_stations = STATIONS;
+    while (active_stations > 0) {
+        for (int i = 0; i < STATIONS; i++) {
+            char buffer[20];
+            ssize_t bytes_read = read(pipes[i][0], buffer, sizeof(buffer) - 1);
+
+            if (bytes_read > 0) {
+                buffer[bytes_read] = '\0';  // Null-terminate the string
+                char *message = NULL;
+
+                if (strcmp(buffer, "ARRIVAL") == 0) {
+                    // Increase passengers by reading shared memory
+                    passenger_counts[i] += 10 + (rand() % 41); // Increment by 10-50
+                    asprintf(&message, "[Control Center] Station %d - Train arrival. Passengers now: %d\n", 
+                             i + 1, passenger_counts[i]);
+                    customWrite(message);
+                } else if (strcmp(buffer, "DEPARTURE") == 0) {
+                    // Decrease passengers while ensuring no negative count
+                    int decrement = 10 + (rand() % 41);  // Decrement by 10-50
+                    passenger_counts[i] = (passenger_counts[i] > decrement) ? 
+                                          (passenger_counts[i] - decrement) : 0;
+                    asprintf(&message, "[Control Center] Station %d - Train departure. Passengers now: %d\n", 
+                             i + 1, passenger_counts[i]);
+                    customWrite(message);
+                } else if (strcmp(buffer, "FINISHED") == 0) {
+                    active_stations--;  // Mark station as finished
+                    asprintf(&message, "[Control Center] Station %d has completed all events.\n", i + 1);
+                    customWrite(message);
+                }
+
+                free(message);  // Free dynamically allocated message
+            }
+        }
+    }
+
+    // Cleanup
+    for (int i = 0; i < STATIONS; i++) {
+        close(pipes[i][0]);
+    }
+    shmdt(passenger_counts);
+    shmctl(shmid, IPC_RMID, NULL);
+
+    char *final_message = NULL;
+    asprintf(&final_message, "[Control Center] All stations have completed. System shutting down.\n");
+    customWrite(final_message);
+    free(final_message);  // Free final message
+
+    return 0;
+
+}
