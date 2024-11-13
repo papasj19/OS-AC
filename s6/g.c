@@ -5,8 +5,13 @@
         - Guillermo Nebra Aljama    <guillermo.nebra>
         - Spencer Johnson           <spencerjames.johnson>
     Developed on: November 13th, 2024
+    :)
 */
 
+#define printF(x) write(1, x, strlen(x))
+
+
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +30,11 @@
 #define DEPARTURE_REPORT 2
 #define END_REPORT 3
 
+#define RESET "\x1b[0m"
+#define YELLOW "\x1b[33m"
+#define BLUE "\x1b[34m"
+#define GREEN "\x1b[32m"
+
 typedef struct {
     int type;
     int station_id;
@@ -36,11 +46,13 @@ int *passenger_counts;
 int pipes[NUM_STATIONS][2];
 
 void handle_error(const char *message) {
+    
     perror(message);
     exit(EXIT_FAILURE);
 }
 
 void close_all_pipes(int station_id) {
+    
     for (int i = 0; i < NUM_STATIONS; i++) {
         if (i != station_id) {
             close(pipes[i][0]);
@@ -50,6 +62,7 @@ void close_all_pipes(int station_id) {
 }
 
 void station_process(int station_id) {
+    
     close_all_pipes(station_id);
     srand(time(NULL) ^ (station_id << 8));
     
@@ -62,7 +75,8 @@ void station_process(int station_id) {
         
         if (report.type == ARRIVAL_REPORT) {
             passenger_counts[station_id] += passenger_change;
-        } else {
+        } 
+        else {
             passenger_counts[station_id] = (passenger_counts[station_id] < passenger_change) ?
                                            0 : passenger_counts[station_id] - passenger_change;
         }
@@ -88,10 +102,14 @@ void control_center() {
     for (int i = 0; i < NUM_STATIONS; i++) {
         close(pipes[i][1]);
     }
+
+    char *message = NULL;
     
     while (stations_active > 0) {
         FD_ZERO(&read_fds);
         int max_fd = 0;
+
+        
         
         for (int i = 0; i < NUM_STATIONS; i++) {
             if (pipes[i][0] != -1) {
@@ -114,17 +132,31 @@ void control_center() {
                     pipes[i][0] = -1;
                     stations_active--;
                 } else {
-                    char buffer[128];
-                    snprintf(buffer, sizeof(buffer),
-                             "[Control Center] Station %d - Train %s. Passengers at station: %d\n",
-                             report.station_id + 1,
-                             report.type == ARRIVAL_REPORT ? "arrival" : "departure",
-                             report.passenger_count);
-                    write(STDOUT_FILENO, buffer, strlen(buffer));
+                        const char *color;
+                        if (report.station_id == 0) {
+                            color = BLUE;
+                        } else if (report.station_id == 1) {
+                            color = GREEN;
+                        } else {
+                            color = YELLOW;
+                        }
+
+                        // Use asprintf to format the message with color
+                        asprintf(&message, "%s[Control Center] Station %d - Train %s. Passengers at station: %d%s\n",
+                                color,
+                                report.station_id + 1,
+                                report.type == ARRIVAL_REPORT ? "arrival" : "departure",
+                                report.passenger_count,
+                                RESET);
+
+                        // Output the colored message
+
+                    write(STDOUT_FILENO, message, strlen(message));
                 }
             }
         }
     }
+    free(message);
 
     shmdt(passenger_counts);
     shmctl(shm_id, IPC_RMID, NULL);
@@ -156,6 +188,8 @@ int main() {
     for (int i = 0; i < NUM_STATIONS; i++) {
         wait(NULL);
     }
+    
+    printF("Control Center: All stations have finished\n");
     
     return EXIT_SUCCESS;
 }

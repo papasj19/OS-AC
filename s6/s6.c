@@ -5,8 +5,13 @@
         - Guillermo Nebra Aljama    <guillermo.nebra>
         - Spencer Johnson           <spencerjames.johnson>
     Developed on: November 13th, 2024
+    :)
 */
 
+#define printF(x) write(1, x, strlen(x))
+
+
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +33,6 @@
 #define RESET "\x1b[0m"
 #define YELLOW "\x1b[33m"
 #define BLUE "\x1b[34m"
-#define CYAN "\x1b[36m"
 #define GREEN "\x1b[32m"
 
 typedef struct {
@@ -37,16 +41,13 @@ typedef struct {
     int passenger_count;
 } Report;
 
-int shm_id;
-int *passenger_counts;
-int pipes[NUM_STATIONS][2];
-
 void handle_error(const char *message) {
     perror(message);
     exit(EXIT_FAILURE);
 }
 
-void close_all_pipes(int station_id) {
+void close_all_pipes(int pipes[NUM_STATIONS][2], int station_id) {
+    
     for (int i = 0; i < NUM_STATIONS; i++) {
         if (i != station_id) {
             close(pipes[i][0]);
@@ -55,10 +56,10 @@ void close_all_pipes(int station_id) {
     }
 }
 
-void station_process(int station_id) {
-    close_all_pipes(station_id);
-    srand(time(NULL) ^ (station_id << 8));
-    
+void station_process(int station_id, int *passenger_counts, int pipes[NUM_STATIONS][2]) {
+    close_all_pipes(pipes, station_id);
+    srand(time(NULL) + station_id);  // Generating a random seed for each station
+
     for (int i = 0; i < NUM_EVENTS; i++) {
         Report report;
         report.station_id = station_id;
@@ -68,7 +69,8 @@ void station_process(int station_id) {
         
         if (report.type == ARRIVAL_REPORT) {
             passenger_counts[station_id] += passenger_change;
-        } else {
+        } 
+        else {
             passenger_counts[station_id] = (passenger_counts[station_id] < passenger_change) ?
                                            0 : passenger_counts[station_id] - passenger_change;
         }
@@ -87,22 +89,19 @@ void station_process(int station_id) {
     exit(EXIT_SUCCESS);
 }
 
-void control_center() {
+void control_center(int shm_id, int *passenger_counts, int pipes[NUM_STATIONS][2]) {
     fd_set read_fds;
     int stations_active = NUM_STATIONS;
-    
+    char *message = NULL;
+
     for (int i = 0; i < NUM_STATIONS; i++) {
         close(pipes[i][1]);
     }
-
-    char *message = NULL;
     
     while (stations_active > 0) {
         FD_ZERO(&read_fds);
         int max_fd = 0;
 
-        
-        
         for (int i = 0; i < NUM_STATIONS; i++) {
             if (pipes[i][0] != -1) {
                 FD_SET(pipes[i][0], &read_fds);
@@ -116,6 +115,7 @@ void control_center() {
         
         for (int i = 0; i < NUM_STATIONS; i++) {
             if (pipes[i][0] != -1 && FD_ISSET(pipes[i][0], &read_fds)) {
+                
                 Report report;
                 int bytes_read = read(pipes[i][0], &report, sizeof(Report));
                 
@@ -123,25 +123,16 @@ void control_center() {
                     close(pipes[i][0]);
                     pipes[i][0] = -1;
                     stations_active--;
-                } else {
-                        const char *color;
-                        if (report.station_id == 0) {
-                            color = BLUE;
-                        } else if (report.station_id == 1) {
-                            color = GREEN;
-                        } else {
-                            color = YELLOW;
-                        }
-
-                        // Use asprintf to format the message with color
-                        asprintf(&message, "%s[Control Center] Station %d - Train %s. Passengers at station: %d%s\n",
-                                color,
-                                report.station_id + 1,
-                                report.type == ARRIVAL_REPORT ? "arrival" : "departure",
-                                report.passenger_count,
-                                RESET);
-
-                        // Output the colored message
+                } 
+                else {
+                    const char *color = (report.station_id == 0) ? BLUE : (report.station_id == 1) ? GREEN : YELLOW;
+                    
+                    asprintf(&message, "%s[Control Center] Station %d - Train %s. Passengers at station: %d%s\n",
+                             color,
+                             report.station_id + 1,
+                             report.type == ARRIVAL_REPORT ? "arrival" : "departure",
+                             report.passenger_count,
+                             RESET);
 
                     write(STDOUT_FILENO, message, strlen(message));
                 }
@@ -155,31 +146,43 @@ void control_center() {
 }
 
 int main() {
-    shm_id = shmget(IPC_PRIVATE, NUM_STATIONS * sizeof(int), IPC_CREAT | 0666);
+    srand(time(NULL));
+
+    int shm_id = shmget(IPC_PRIVATE, NUM_STATIONS * sizeof(int), IPC_CREAT | 0666);
     if (shm_id == -1) handle_error("shmget");
 
-    passenger_counts = (int *)shmat(shm_id, NULL, 0);
-    if (passenger_counts == (void *)-1) handle_error("shmat");
+    int *passenger_counts = (int *)shmat(shm_id, NULL, 0);
+    
+    if (passenger_counts == (void *)-1) {
+        handle_error("shmat");
+    }
 
     memset(passenger_counts, 0, NUM_STATIONS * sizeof(int));
     
+    int pipes[NUM_STATIONS][2];
     for (int i = 0; i < NUM_STATIONS; i++) {
         if (pipe(pipes[i]) == -1) handle_error("pipe");
     }
     
     for (int i = 0; i < NUM_STATIONS; i++) {
         pid_t pid = fork();
-        if (pid == -1) handle_error("fork");
+        
+        if (pid == -1) {
+            handle_error("fork");
+        }
+
         if (pid == 0) {
-            station_process(i);
+            station_process(i, passenger_counts, pipes);
         }
     }
 
-    control_center();
+    control_center(shm_id, passenger_counts, pipes);
 
     for (int i = 0; i < NUM_STATIONS; i++) {
         wait(NULL);
     }
+    
+    printF("Control Center: All stations have finished\n");
     
     return EXIT_SUCCESS;
 }
