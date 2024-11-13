@@ -1,72 +1,185 @@
+/* 
+    Operating Systems: Lab 6: Pipes & Shared Memory
+    
+    Developed by:
+        - Guillermo Nebra Aljama    <guillermo.nebra>
+        - Spencer Johnson           <spencerjames.johnson>
+    Developed on: November 13th, 2024
+*/
 
-#define _GNU_SOURCE
-#include <ctype.h>
-#include <fcntl.h>
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 #include <unistd.h>
+#include <sys/wait.h>
+#include <sys/types.h>
 #include <sys/shm.h>
-#include <math.h>
+#include <fcntl.h>
+#include <time.h>
+#include <string.h>
 
+#define NUM_STATIONS 3
+#define NUM_EVENTS 9
 
-#define printF(x) write(1, x, strlen(x))
-// TEXT COLORS
-#define C_RESET "\033[0m"
-#define C_RED   "\033[31m"
-#define C_GREEN "\033[32m"
-#define C_YELLOW    "\033[33m"
+#define ARRIVAL_REPORT 1
+#define DEPARTURE_REPORT 2
+#define END_REPORT 3
 
+#define RESET "\x1b[0m"
+#define YELLOW "\x1b[33m"
+#define BLUE "\x1b[34m"
+#define CYAN "\x1b[36m"
+#define GREEN "\x1b[32m"
 
+typedef struct {
+    int type;
+    int station_id;
+    int passenger_count;
+} Report;
 
+int shm_id;
+int *passenger_counts;
+int pipes[NUM_STATIONS][2];
 
-
-void customWrite(const char *message) {
-    write(STDOUT_FILENO, message, strlen(message));
+void handle_error(const char *message) {
+    perror(message);
+    exit(EXIT_FAILURE);
 }
 
-char* read_until(int fd, char end) {
-    char *string = NULL;
-    char c;
-    int i = 0, size;
-
-    while (1) {
-        size = read(fd, &c, sizeof(char));
-        if (string == NULL) {
-            string = (char *)malloc(sizeof(char));
+void close_all_pipes(int station_id) {
+    for (int i = 0; i < NUM_STATIONS; i++) {
+        if (i != station_id) {
+            close(pipes[i][0]);
+            close(pipes[i][1]);
         }
-        if (c != end && size > 0) {
-            string = (char *)realloc(string, sizeof(char) * (i + 2));
-            string[i++] = c;
+    }
+}
+
+void station_process(int station_id) {
+    close_all_pipes(station_id);
+    srand(time(NULL) ^ (station_id << 8));
+    
+    for (int i = 0; i < NUM_EVENTS; i++) {
+        Report report;
+        report.station_id = station_id;
+        report.type = (rand() % 2) ? ARRIVAL_REPORT : DEPARTURE_REPORT;
+        
+        int passenger_change = (rand() % 41) + 10;
+        
+        if (report.type == ARRIVAL_REPORT) {
+            passenger_counts[station_id] += passenger_change;
         } else {
-            break;
+            passenger_counts[station_id] = (passenger_counts[station_id] < passenger_change) ?
+                                           0 : passenger_counts[station_id] - passenger_change;
         }
+        
+        report.passenger_count = passenger_counts[station_id];
+        
+        write(pipes[station_id][1], &report, sizeof(Report));
+        
+        usleep((rand() % 1000) * 1000);
     }
-    string[i] = '\0';
-    return string;
+
+    Report end_report = {END_REPORT, station_id, 0};
+    write(pipes[station_id][1], &end_report, sizeof(Report));
+    
+    close(pipes[station_id][1]);
+    exit(EXIT_SUCCESS);
 }
 
-
-
-
-int main(int argc, char *argv[]){
-
-    //check Args
-    if (argc != 2)
-    {
-        customWrite("Invalid number of arguments\n");
-        return -1;
+void control_center() {
+    fd_set read_fds;
+    int stations_active = NUM_STATIONS;
+    
+    for (int i = 0; i < NUM_STATIONS; i++) {
+        close(pipes[i][1]);
     }
 
+    char *message = NULL;
+    
+    while (stations_active > 0) {
+        FD_ZERO(&read_fds);
+        int max_fd = 0;
 
+        
+        
+        for (int i = 0; i < NUM_STATIONS; i++) {
+            if (pipes[i][0] != -1) {
+                FD_SET(pipes[i][0], &read_fds);
+                if (pipes[i][0] > max_fd) max_fd = pipes[i][0];
+            }
+        }
+        
+        if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) == -1) {
+            handle_error("select");
+        }
+        
+        for (int i = 0; i < NUM_STATIONS; i++) {
+            if (pipes[i][0] != -1 && FD_ISSET(pipes[i][0], &read_fds)) {
+                Report report;
+                int bytes_read = read(pipes[i][0], &report, sizeof(Report));
+                
+                if (bytes_read == 0) {
+                    close(pipes[i][0]);
+                    pipes[i][0] = -1;
+                    stations_active--;
+                } else {
+                        const char *color;
+                        if (report.station_id == 0) {
+                            color = BLUE;
+                        } else if (report.station_id == 1) {
+                            color = GREEN;
+                        } else {
+                            color = YELLOW;
+                        }
 
+                        // Use asprintf to format the message with color
+                        asprintf(&message, "%s[Control Center] Station %d - Train %s. Passengers at station: %d%s\n",
+                                color,
+                                report.station_id + 1,
+                                report.type == ARRIVAL_REPORT ? "arrival" : "departure",
+                                report.passenger_count,
+                                RESET);
 
+                        // Output the colored message
 
+                    write(STDOUT_FILENO, message, strlen(message));
+                }
+            }
+        }
+    }
+    free(message);
 
+    shmdt(passenger_counts);
+    shmctl(shm_id, IPC_RMID, NULL);
+}
 
-    return 0; 
+int main() {
+    shm_id = shmget(IPC_PRIVATE, NUM_STATIONS * sizeof(int), IPC_CREAT | 0666);
+    if (shm_id == -1) handle_error("shmget");
 
+    passenger_counts = (int *)shmat(shm_id, NULL, 0);
+    if (passenger_counts == (void *)-1) handle_error("shmat");
+
+    memset(passenger_counts, 0, NUM_STATIONS * sizeof(int));
+    
+    for (int i = 0; i < NUM_STATIONS; i++) {
+        if (pipe(pipes[i]) == -1) handle_error("pipe");
+    }
+    
+    for (int i = 0; i < NUM_STATIONS; i++) {
+        pid_t pid = fork();
+        if (pid == -1) handle_error("fork");
+        if (pid == 0) {
+            station_process(i);
+        }
+    }
+
+    control_center();
+
+    for (int i = 0; i < NUM_STATIONS; i++) {
+        wait(NULL);
+    }
+    
+    return EXIT_SUCCESS;
 }
