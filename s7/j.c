@@ -1,10 +1,10 @@
 /* 
-    Operating Systems: Lab 6: Pipes & Shared Memory
+    Operating Systems: Lab 7: Select
     
     Developed by:
         - Guillermo Nebra Aljama    <guillermo.nebra>
         - Spencer Johnson           <spencerjames.johnson>
-    Developed on: November 13th, 2024
+    Developed on: November 20th, 2024
     :)
 */
 
@@ -35,7 +35,35 @@
 #define BLUE "\x1b[34m"
 #define GREEN "\x1b[32m"
 
+#define printF(x) write(1, x, strlen(x))
 
+
+char *read_until(int fd, char end)
+{
+    char *string = NULL;
+    char c;
+    int i = 0, size;
+
+    while (1)
+    {
+        size = read(fd, &c, sizeof(char));
+        if (string == NULL)
+        {
+            string = (char *)malloc(sizeof(char));
+        }
+        if (c != end && size > 0)
+        {
+            string = (char *)realloc(string, sizeof(char) * (i + 2));
+            string[i++] = c;
+        }
+        else
+        {
+            break;
+        }
+    }
+    string[i] = '\0';
+    return string;
+}
 
 
 int main(void){
