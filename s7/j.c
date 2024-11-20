@@ -111,7 +111,7 @@ void parse_dictionary(const char *filename) {
         // Locate the delimiter ':'
         char *delimiter_pos = strchr(line, ':');
         if (delimiter_pos == NULL) {
-            fprintf(stderr, "Invalid line format: %s\n", line);
+            fprintF(stderr, "Invalid line format: %s\n", line);
             free(line);
             continue;
         }
@@ -262,15 +262,46 @@ int do_connection(int connectFD){
     }
     char operation;
     operation = choice[0];
+    
 
         switch (operation)
         {
             case 'C':
-                doSearchWord(connectFD);
+             char *word = choice + 2;  // Skip 'C*'
+                char *newline_pos = strchr(word, '\n');
+                if (!newline_pos) {
+                    printF("E* Invalid frame, missing newline.\n");
+                    return;
+                }
+                *newline_pos = '\0';  // Null-terminate the word
 
+                // Store the middle word in a variable
+                char *query_word = strdup(word);  // Dynamically allocate memory for the word
+                if (!query_word) {
+                    perror("Failed to allocate memory for the word");
+                    return;
+                }
+                handle_query(query_word);
             break;
 
             case 'A':
+            char *word = choice + 2;  // Skip 'A*'
+            char *second_asterisk = strchr(word, '*');
+            if (!second_asterisk) {
+                printF("E* Invalid frame format, missing second '*'.\n");
+                return;
+            }
+
+            *second_asterisk = '\0';  // Null-terminate the word
+            char *definition = second_asterisk + 1;
+
+            // Find and remove the trailing newline from the definition
+            char *newline_pos = strchr(definition, '\n');
+            if (!newline_pos) {
+                printF("E* Invalid frame format, missing newline.\n");
+                return;
+            }
+            *newline_pos = '\0';  // Null-terminate the definition
                 printF("\nUser has requested add word command\n");
 
             break;
@@ -303,11 +334,15 @@ int main(int argc, char *argv[]) {
 
     parse_dictionary(argv[3]);
 
-    printf("Dictionary Server Started\n");
+    printF("Dictionary Server Started\n");
 
     int server_fd = setup_server(argv[1], atoi(argv[2]));
 
     while (1) {
+        if(select(server_fd, NULL, NULL, NULL, NULL) < 0){
+            perror("Select failed");
+            return EXIT_FAILURE;
+        }
         printF("Waiting on new connections...\n");
         int newConnect = accept(server_fd, NULL, NULL);
         if (newConnect < 0) {
