@@ -111,7 +111,7 @@ void parse_dictionary(const char *filename) {
         // Locate the delimiter ':'
         char *delimiter_pos = strchr(line, ':');
         if (delimiter_pos == NULL) {
-            fprintF(stderr, "Invalid line format: %s\n", line);
+            fprintf(stderr, "Invalid line format: %s\n", line);
             free(line);
             continue;
         }
@@ -285,12 +285,14 @@ int do_connection(int connectFD){
     char operation;
     operation = choice[0];
     char *newline_pos;
+
+    char * word; 
     
 
         switch (operation)
         {
             case 'C':
-             char *word = choice + 2;  // Skip 'C*'
+             word = choice + 2;  // Skip 'C*'
                 newline_pos = strchr(word, '\n');
                 if (!newline_pos) {
                     printF("E* Invalid frame, missing newline.\n");
@@ -299,7 +301,7 @@ int do_connection(int connectFD){
                 *newline_pos = '\0';  // Null-terminate the word
 
                 // Store the middle word in a variable
-                char *query_word = strdup(&word);  // Dynamically allocate memory for the word
+                char *query_word = strdup(word);  // Dynamically allocate memory for the word
                 if (!query_word) {
                     perror("Failed to allocate memory for the word");
                     return -1;
@@ -308,24 +310,24 @@ int do_connection(int connectFD){
             break;
 
             case 'A':
-            char *word = choice + 2;  // Skip 'A*'
-            char *second_asterisk = strchr(word, '*');
-            if (!second_asterisk) {
-                printF("E* Invalid frame format, missing second '*'.\n");
-                return -1;
-            }
+                word = choice + 2;  // Skip 'A*'
+                char *second_asterisk = strchr(word, '*');
+                if (!second_asterisk) {
+                    printF("E* Invalid frame format, missing second '*'.\n");
+                    return -1;
+                }
 
-            *second_asterisk = '\0';  // Null-terminate the word
-            char *definition = second_asterisk + 1;
+                *second_asterisk = '\0';  // Null-terminate the word
+                char *definition = second_asterisk + 1;
 
-            // Find and remove the trailing newline from the definition
-            newline_pos = strchr(definition, '\n');
-            if (!newline_pos) {
-                printF("E* Invalid frame format, missing newline.\n");
-                return -1;
-            }
-            *newline_pos = '\0';  // Null-terminate the definition
-                printF("\nUser has requested add word command\n");
+                // Find and remove the trailing newline from the definition
+                newline_pos = strchr(definition, '\n');
+                if (!newline_pos) {
+                    printF("E* Invalid frame format, missing newline.\n");
+                    return -1;
+                }
+                *newline_pos = '\0';  // Null-terminate the definition
+                    printF("\nUser has requested add word command\n");
 
             break;
 
