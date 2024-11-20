@@ -114,7 +114,12 @@ int setup_server(const char *ip, int port) {
     return server_fd;
 }
 
-
+void doSearchWord(int connectFD){
+    printF("User has requested search word command\n");
+    write(connectFD, "Search word command\n", 20);
+    char *choice = read_until(connectFD, '\n');
+    printF(choice);
+}
 
 
 
@@ -132,7 +137,7 @@ int do_connection(int connectFD){
         switch (atoi(choice))
         {
             case 1:
-                printF("\nUser has requested search word command\n");
+                doSearchWord(connectFD);
 
             break;
 
@@ -167,14 +172,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-     printf("Dictionary Server Started\n");
-
-
+    printf("Dictionary Server Started\n");
 
     int server_fd = setup_server(argv[1], atoi(argv[2]));
-
-   
-
 
     while (1) {
         printF("Waiting on new connections...\n");
