@@ -136,8 +136,9 @@ void parse_dictionary(const char *filename) {
         strcpy(dictionary[i].definition, delimiter_pos + 1);
 
         // Print the result
-        printf("Key: %s\nValue: %s\n\n", dictionary[i].word, dictionary[i].definition);
-
+        char * mybuff; 
+        asprintf(&mybuff,"Key: %s\nValue: %s\n\n", dictionary[i].word, dictionary[i].definition);
+        printF(mybuff);
         free(line);
     }
 
@@ -164,30 +165,51 @@ int search_word(const char *word) {
 void handle_query(const char *word) {
     int index = search_word(word);
     if (index == -1) {
-        printf("E* The word %s has not been found in the dictionary.\n", word);
+        char * mybuff; 
+        asprintf(&mybuff,"E* The word %s has not been found in the dictionary.\n", word);
+        printF(mybuff);
+        free(mybuff);
     } else {
-        printf("D*%s*%s\n", dictionary[index].word, dictionary[index].definition);
+        char * mybuff; 
+        asprintf(&mybuff,"D*%s*%s\n", dictionary[index].word, dictionary[index].definition);
+        printF(mybuff);
+        free(mybuff);
     }
+        
 }
 
 // Function to handle adding a new word
 void handle_add(const char *word, const char *definition) {
     if (search_word(word) != -1) {
-        printf("E* The word %s is already in the dictionary.\n", word);
+        char * mybuff; 
+        asprintf(&mybuff, "E* The word %s is already in the dictionary.\n", word);
+        printF(mybuff);
+        free(mybuff);
         return;
     }
     // Add the word and definition
     dictionary[dictionary_size].word = strdup(word);
     dictionary[dictionary_size].definition = strdup(definition);
     dictionary_size++;
-    printf("OK* The word %s has been added to the dictionary.\n", word);
+    char * mybuff; 
+        asprintf(&mybuff, "OK* The word %s has been added to the dictionary.\n", word);
+        printF(mybuff);
+        free(mybuff);
+
 }
 
 // Function to handle listing all words
 void handle_list() {
-    printf("L*%d\n", dictionary_size);
+        char * mybuff; 
+        asprintf(&mybuff, "L*%d\n", dictionary_size);
+        printF(mybuff);
+        free(mybuff);
+
     for (int i = 0; i < dictionary_size; i++) {
-        printf("%s\n", dictionary[i].word);
+        char * mybuff; 
+        asprintf(&mybuff, "%s\n", dictionary[i].word);
+        printF(mybuff);
+        free(mybuff);
     }
 }
 
@@ -257,7 +279,7 @@ int do_connection(int connectFD){
         char *choice = read_until(connectFD, '\n');
 
         if (choice[1] != '*') {
-            printf("E* Invalid frame format.\n");
+            perror("E* Invalid frame format.\n");
         return -1;
     }
     char operation;
