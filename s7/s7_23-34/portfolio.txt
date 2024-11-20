@@ -1,0 +1,9 @@
+8
+apple|2112&1122
+microsoft|69&420
+ibm|2&5
+paypal|2&3
+nttdata|45&87
+telefonica|45&87
+mapfre|45&87
+huawei|34&32
