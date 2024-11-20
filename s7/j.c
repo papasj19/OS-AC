@@ -47,8 +47,8 @@
 
 
 typedef struct {
-    char *key;
-    char *value;
+    char *word;
+    char *definition;
 } Entry;
 
 Entry * dictionary; 
@@ -121,30 +121,30 @@ void parse_dictionary(const char *filename) {
         size_t value_length = strlen(line) - key_length - 1;
 
         // Allocate memory for key and value
-        dictionary[i].key = malloc(key_length + 1);
-        dictionary[i].value = malloc(value_length + 1);
+        dictionary[i].word = malloc(key_length + 1);
+        dictionary[i].definition = malloc(value_length + 1);
 
-        if (!dictionary[i].key || !dictionary[i].value) {
+        if (!dictionary[i].word || !dictionary[i].definition) {
             perror("Memory allocation failed");
             free(line);
             continue;
         }
 
         // Copy key and value into allocated memory using strcpy
-        strncpy(dictionary[i].key, line, key_length);
-        dictionary[i].key[key_length] = '\0';  // Null-terminate the key
-        strcpy(dictionary[i].value, delimiter_pos + 1);
+        strncpy(dictionary[i].word, line, key_length);
+        dictionary[i].word[key_length] = '\0';  // Null-terminate the key
+        strcpy(dictionary[i].definition, delimiter_pos + 1);
 
         // Print the result
-        printf("Key: %s\nValue: %s\n\n", dictionary[i].key, dictionary[i].value);
+        printf("Key: %s\nValue: %s\n\n", dictionary[i].word, dictionary[i].definition);
 
         free(line);
     }
 
     // Free allocated memory
     for (int i = 0; i < num_entries; i++) {
-        free(dictionary[i].key);
-        free(dictionary[i].value);
+        free(dictionary[i].word);
+        free(dictionary[i].definition);
     }
     free(dictionary);
 
@@ -251,7 +251,6 @@ int do_connection(int connectFD){
 
     char *username = read_until(connectFD, '\n');
     newUser(username);
-    int operation = 0;
 
     while(1){
 
@@ -259,11 +258,12 @@ int do_connection(int connectFD){
 
         if (choice[1] != '*') {
             printf("E* Invalid frame format.\n");
-        return;
+        return -1;
     }
+    char operation;
     operation = choice[0];
 
-        switch (atoi(choice))
+        switch (operation)
         {
             case 'C':
                 doSearchWord(connectFD);
@@ -279,7 +279,7 @@ int do_connection(int connectFD){
                 printF("\nUser has requested list words command\n");
             break;
 
-            case '':
+            case 'Q':
                 return 100; 
             break;
         
