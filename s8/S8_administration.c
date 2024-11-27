@@ -92,7 +92,7 @@ char *read_until(int fd, char end)
 void load_appointments(const char *filename) {
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
-        perror("Error opening file");
+        printF("File does not exist");
         return; 
     }
     if (read(fd, bookings, sizeof(bookings)) != sizeof(bookings)) {
