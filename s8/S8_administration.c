@@ -18,6 +18,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include <sys/shm.h>
 #include <fcntl.h>
 #include <time.h>
@@ -194,7 +196,7 @@ void doThings(int queue_num){
 
 
 int main(){
-    key_t key; int id_queue; Message1 M1; Message2 M2;
+    key_t key; int id_queue;
 
     printF("Adminstration process started\n");
 
