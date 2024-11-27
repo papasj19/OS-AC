@@ -23,19 +23,21 @@ const char *dni_letters = "TRWAGMYFPDXBNJZSQVHLCKE";
 #define REQUEST_TIMES 1
 #define RESERVE 2
 #define CONFIRMED 3
-#define UNAVAILABLE 4
+#define NOT_AVAILABLE 4
 
 typedef struct {
     long mtype;
+    char hour[20]; //used to be 6
     char text[MSG_SIZE];
-    char hour[6];
 } Message;
+
+
 
 // Sends a message to the message queue
 void sendMsg(int msgid, long mtype, const char *text, const char *hour) {
     Message msg;
     msg.mtype = mtype;
-    strncpy(msg.text, text, MSG_SIZE);
+    strncpy(msg.hour, text, 20);
     if (hour != NULL) strncpy(msg.hour, hour, 6);
     msgsnd(msgid, &msg, sizeof(msg) - sizeof(long), 0);
 }
@@ -44,6 +46,7 @@ void sendMsg(int msgid, long mtype, const char *text, const char *hour) {
 void receiveMsg(int msgid, long mtype, Message *msg) {
     msgrcv(msgid, msg, sizeof(*msg) - sizeof(long), mtype, 0);
 }
+
 
 // Validates the format and checksum of a DNI
 int validate_dni(const char *dni) {
@@ -81,25 +84,26 @@ int main() {
     }
 
     // Initialize message queue
-    key_t key = ftok("S8_administration.c", 65);
+    key_t key = ftok("S8_administration.c", 12);
     int msgid = msgget(key, 0666 | IPC_CREAT);
 
     Message response;
 
     while (1) {
         // Request available times
-        sendMsg(msgid, REQUEST_TIMES, "REQUEST_TIMES", NULL);
+        sendMsg(msgid, 2, "REQUEST_TIMES", NULL);
 
         asprintf(&buffer, "Available times:\n");
         printF(buffer);
         free(buffer);
 
-        while (1) {
-            receiveMsg(msgid, REQUEST_TIMES, &response);
-            if (strcmp(response.text, "END") == 0) break;
-            printF(response.text);
-            printF("\n");
-        }
+        // Receive available times
+        receiveMsg(msgid, 2, &response);
+        
+        
+        // Print the available times from the received message
+        printF(response.text);
+        printF("\n");
 
         char selected_hour[6];
         asprintf(&buffer, "Select a time slot: ");
@@ -114,11 +118,14 @@ int main() {
         free(buffer);
 
         // Attempt to reserve appointment
-        sendMsg(msgid, RESERVE, "RESERVE", selected_hour);
+        sendMsg(msgid, 2, "RESERVE", selected_hour);
         receiveMsg(msgid, 0, &response);
 
-        if (strcmp(response.text, "CONFIRMED") == 0) {
-            asprintf(&buffer, "Appointment successfully reserved. Thank you!\n");
+        if (strcpy(response.text, "CONFIRMED") == 0) {
+            asprintf(&buffer, "Appointment successfully reserved.\n");
+            printF(buffer);
+            free(buffer);
+            asprintf(&buffer, "Thank you!\n");
             printF(buffer);
             free(buffer);
             break;
