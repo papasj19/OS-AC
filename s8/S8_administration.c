@@ -163,9 +163,11 @@ void requestTimes(struct msg *message, int queueNum) {
     for (int i = 0; i < TOT; i++) {
         if (bookings[i] < 2) { 
             strcat(response, time_slots[i]);
-            strcat(response, " ");
+            strcat(response, "\n");
         }
     }
+
+    printf("Available times: %s\n", response);
     message->mtype = REQUEST_TIMES;
     strcpy(message->data, response);
 
@@ -177,6 +179,8 @@ void requestTimes(struct msg *message, int queueNum) {
 
 void doThings(int queue_num){
     struct msg message;
+
+    message.mtype = 1;
 
     while (1) {
         if (msgrcv(queue_num, &message, sizeof(message) - sizeof(long), 0, 0) == -1) {
