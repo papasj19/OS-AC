@@ -39,12 +39,12 @@ void sendMsg(int msgid, long mtype, const char *text, const char *hour) {
     msg.mtype = mtype;
     strncpy(msg.hour, text, 20);
     if (hour != NULL) strncpy(msg.hour, hour, 6);
-    msgsnd(msgid, &msg, sizeof(msg) - sizeof(long), 0);
+    msgsnd(1, &msg, sizeof(msg) - sizeof(long), 0);
 }
 
 // Receives a message from the message queue
 void receiveMsg(int msgid, long mtype, Message *msg) {
-    msgrcv(msgid, msg, sizeof(*msg) - sizeof(long), mtype, 0);
+    msgrcv(2, msg, sizeof(*msg) - sizeof(long), mtype, 0);
 }
 
 
