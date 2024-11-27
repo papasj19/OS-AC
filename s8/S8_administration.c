@@ -151,13 +151,12 @@ void reserveTime(struct msg *mess, int queue_num){
         strcpy(mess->data, "NOT_AVAILABLE");
     }
 
-    if (msgsnd(queue_num, mess, sizeof(*mess) - sizeof(long), 0) == -1) {
+    if (msgsnd(2, mess, sizeof(*mess) - sizeof(long), 0) == -1) {
         perror("Error sending response");
     }
 }
 
 void requestTimes(struct msg *message, int queueNum) {
-    printF("Requesting available times...\n");
     char response[256] = "";
 
     for (int i = 0; i < TOT; i++) {
@@ -172,7 +171,7 @@ void requestTimes(struct msg *message, int queueNum) {
     message->mtype = REQUEST_TIMES;
     strcpy(message->data, response);
 
-    if (msgsnd(queueNum, message, sizeof(*message) - sizeof(long), 0) == -1) {
+    if (msgsnd(2, message, sizeof(*message) - sizeof(long), 0) == -1) {
         perror("Error sending response");
     }
 }
@@ -183,16 +182,19 @@ void doThings(int queue_num){
     while (1) {
         struct msg message;
         message.mtype = 1;
-        if (msgrcv(queue_num, &message, sizeof(message) - sizeof(long), 0, 0) == -1) {
+        printf("im gonna rec "); 
+        if (msgrcv(queue_num, &message, sizeof(message) - sizeof(long),1, 0) == -1) {
             perror("Error receiving message");
             continue;
         }
 
-        printf("Message received: %s\n", message.header);
+        //printf("Message received: %s\n", message.header);
         if (strcmp(message.header, "REQUEST_TIMES") == 0) {
             requestTimes(&message, queue_num);
+            strcpy(message.header, " ");
         } else if (strcmp(message.header, "RESERVE") == 0) {
             reserveTime(&message, queue_num);
+            strcpy(message.header, " ");
         }
     }
 }
