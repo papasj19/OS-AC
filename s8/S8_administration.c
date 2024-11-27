@@ -126,14 +126,11 @@ void reserveTime(struct msg *mess, int queue_num){
     if (slot_found != -1 && bookings[slot_found] < 2) {
         bookings[slot_found]++;
 
-
-           char *reservation_info = NULL;
-        asprintf(&reservation_info, "Person %s requested appointment at %s.\n", 
-                 mess->header, time_slots[slot_found]);
+        char *reservation_info = NULL;
+        asprintf(&reservation_info, "Person %s requested appointment at %s.\n", mess->header, time_slots[slot_found]);
         char *reserved_msg = NULL;
         asprintf(&reserved_msg, "Time reserved.\n");
 
-        // Output the dynamically created strings
         if (reservation_info) {
             printF(reservation_info);
             free(reservation_info);
@@ -207,13 +204,13 @@ int main(){
 
     key = ftok("S8_administration.c", 12);
     if (key == (key_t)-1){ 
-        printf("Error: Key\n\n"); exit(-1);
+        printF("Error: Key\n\n"); exit(-1);
     }
 
     //create the queue
     id_queue = msgget(key, 0600|IPC_CREAT);
     if(id_queue == -1){
-        printf("Error creating queue\n\n"); exit(-1);
+        printF("Error creating queue\n\n"); exit(-1);
     }
 
     doThings(id_queue);
