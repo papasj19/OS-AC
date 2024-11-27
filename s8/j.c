@@ -216,14 +216,11 @@ int main(){
         printf("Error creating queue\n\n"); exit(-1);
     }
 
-
     doThings(id_queue);
 
-
-
-
-    //close queue
     msgctl(id_queue, IPC_RMID, (struct msqid_ds *)NULL);
+
+    save_appointments("appointments.dat");
 
     return 0;
 }
