@@ -188,6 +188,7 @@ void doThings(int queue_num){
             continue;
         }
 
+        printf("Message received: %s\n", message.header);
         if (strcmp(message.header, "REQUEST_TIMES") == 0) {
             requestTimes(&message, queue_num);
         } else if (strcmp(message.header, "RESERVE") == 0) {
