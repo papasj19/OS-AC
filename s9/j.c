@@ -2,6 +2,15 @@
     OPERATING SYSTEMS: SESSION 9
     Guillermo Nebra Aljama <guillermo.nebra>
     Spencer Johnson <spencerjames.johnson>
+
+    DISCLAIMER: 
+    The error message shown when compiling the code is related to a conflict with the _GNU_SOURCE macro and the provided semaphore library.
+    Aaron told us to write this disclaimer, as the error originates from "semaphore_v2.h" and not from the code itself :)
+    Pease be kind and ignore the error message. 
+    
+    Thank you!
+        - Guillermo and Spencer
+
 */
 
 #define _GNU_SOURCE
@@ -148,8 +157,8 @@ void display_standings() {
     }
 
     for (int i = 0; i < total_riders; i++) {
-        char* standings_msg = NULL;
         if (riders[i].best_time != __DBL_MAX__) {
+            char* standings_msg = NULL;
             int minutes = (int)(riders[i].best_time / 60);
             int seconds = (int)(riders[i].best_time) % 60;
             int milliseconds = (int)((riders[i].best_time - (int)riders[i].best_time) * 1000);
