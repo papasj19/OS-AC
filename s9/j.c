@@ -20,10 +20,10 @@
 #define printF(x) write(1, x, strlen(x))
 
 typedef struct {
-    char first_name[50];
-    char last_name[50];
+    char *first_name;
+    char *last_name;
     int number;
-    char team[50];
+    char *team;
     double best_time;  
     int laps_completed;
 } Rider;
@@ -60,27 +60,39 @@ void load_riders(const char* filename) {
         rider_count++;
     }
     close(fd);
+
     riders = malloc(rider_count * sizeof(Rider));
     if (!riders) {
         perror("Error allocating memory for riders");
         exit(EXIT_FAILURE);
     }
     total_riders = rider_count;
+
     fd = open(filename, O_RDONLY);
     if (fd < 0) {
         perror("Error reopening file");
         free(riders);
         exit(EXIT_FAILURE);
     }
+
     int idx = 0;
     while (readUntil(fd, buffer, '\n', sizeof(buffer)) > 0) {
-        sscanf(buffer, "%49[^,],%49[^,],%d,%49[^\n]", riders[idx].first_name, riders[idx].last_name, &riders[idx].number, riders[idx].team);
+        char temp_first_name[50], temp_last_name[50], temp_team[50];
+        int number;
+        sscanf(buffer, "%49[^,],%49[^,],%d,%49[^\n]",
+               temp_first_name, temp_last_name, &number, temp_team);
+
+        riders[idx].first_name = strdup(temp_first_name);
+        riders[idx].last_name = strdup(temp_last_name);
+        riders[idx].team = strdup(temp_team);
+        riders[idx].number = number;
         riders[idx].best_time = __DBL_MAX__; 
         riders[idx].laps_completed = 0;
         idx++;
     }
     close(fd);
 }
+
 
 double generate_lap_time() {
     double sector1 = 0.333 + ((rand() % 1334) / 1000.0);  
@@ -105,12 +117,13 @@ void* rider_on_track(void* arg) {
             rider->best_time = lap_time;  
         }
         rider->laps_completed++;
-
+/*
         char* lap_msg = NULL;
         asprintf(&lap_msg, "(%d) %s %s completed lap %d with time: %.3f seconds\n",
                  rider->number, rider->first_name, rider->last_name, rider->laps_completed, lap_time);
         printF(lap_msg);
         free(lap_msg);
+*/
     }
 
     char* leave_msg = NULL;
@@ -123,7 +136,7 @@ void* rider_on_track(void* arg) {
 }
 
 void display_standings() {
-    printF("=== Current Classification ===\n");
+    printF("\n=== Current Classification ===\n");
     for (int i = 0; i < total_riders - 1; i++) {
         for (int j = i + 1; j < total_riders; j++) {
             if (riders[i].best_time > riders[j].best_time) {
@@ -209,6 +222,11 @@ int main(int argc, char* argv[]) {
 
     display_standings();
     printF("\nThe session has ended\n");
+    for (int i = 0; i < total_riders; i++) {
+        free(riders[i].first_name);
+        free(riders[i].last_name);
+        free(riders[i].team);
+    }
     free(riders);
     SEM_destructor(&track_sem); // Destroy the semaphore
     return EXIT_SUCCESS;
