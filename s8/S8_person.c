@@ -44,7 +44,7 @@ void sendMsg(int msgid, long mtype, const char *text, const char *hour) {
 
 // Receives a message from the message queue
 void receiveMsg(int msgid, long mtype, Message *msg) {
-    msgrcv(2, msg, sizeof(*msg) - sizeof(long), mtype, 0);
+    msgrcv(msgid, msg, sizeof(*msg) - sizeof(long), 2, 0);
 }
 
 

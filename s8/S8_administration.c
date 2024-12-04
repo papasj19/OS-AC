@@ -114,7 +114,7 @@ void save_appointments(const char *filename) {
     close(fd);
 }
 
-void reserveTime(struct msg *mess, int queue_num){
+void reserveTime(struct msg *mess){
     printF("Reservation request received.\n");
     int slot_found = -1;
 
@@ -156,7 +156,7 @@ void reserveTime(struct msg *mess, int queue_num){
     }
 }
 
-void requestTimes(struct msg *message, int queueNum) {
+void requestTimes(struct msg *message) {
     char response[256] = "";
 
     for (int i = 0; i < TOT; i++) {
@@ -190,10 +190,10 @@ void doThings(int queue_num){
 
         //printf("Message received: %s\n", message.header);
         if (strcmp(message.header, "REQUEST_TIMES") == 0) {
-            requestTimes(&message, queue_num);
+            requestTimes(&message);
             strcpy(message.header, " ");
         } else if (strcmp(message.header, "RESERVE") == 0) {
-            reserveTime(&message, queue_num);
+            reserveTime(&message);
             strcpy(message.header, " ");
         }
     }
