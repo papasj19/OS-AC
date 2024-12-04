@@ -4,6 +4,8 @@
     Spencer Johnson <spencerjames.johnson>
 */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +27,8 @@ typedef struct {
     double best_time;  
     int laps_completed;
 } Rider;
+
+int countDone = 0;
 
 Rider* riders;
 int total_riders;
@@ -87,8 +91,13 @@ double generate_lap_time() {
 
 void* rider_on_track(void* arg) {
     Rider* rider = (Rider*)arg;
-    SEM_wait(&track_sem); // Wait on the semaphore
-    dprintf(STDOUT_FILENO, "(%d) %s %s on track\n", rider->number, rider->first_name, rider->last_name);
+    SEM_wait(&track_sem); 
+    
+    char* track_msg = NULL;
+    asprintf(&track_msg, "(%d) %s %s on track\n", rider->number, rider->first_name, rider->last_name);
+    printF(track_msg);
+    free(track_msg);
+
     for (int i = 0; i < 5; i++) {
         usleep((rand() % 1000000)); 
         double lap_time = generate_lap_time();  
@@ -96,15 +105,25 @@ void* rider_on_track(void* arg) {
             rider->best_time = lap_time;  
         }
         rider->laps_completed++;
-        dprintf(STDOUT_FILENO, "(%d) %s %s completed lap %d with time: %.3f seconds\n", rider->number, rider->first_name, rider->last_name, rider->laps_completed, lap_time);
+
+        char* lap_msg = NULL;
+        asprintf(&lap_msg, "(%d) %s %s completed lap %d with time: %.3f seconds\n",
+                 rider->number, rider->first_name, rider->last_name, rider->laps_completed, lap_time);
+        printF(lap_msg);
+        free(lap_msg);
     }
-    dprintf(STDOUT_FILENO, "(%d) %s %s leaves the track\n", rider->number, rider->first_name, rider->last_name);
-    SEM_signal(&track_sem); // Signal the semaphore
+
+    char* leave_msg = NULL;
+    asprintf(&leave_msg, "(%d) %s %s leaves the track\n", rider->number, rider->first_name, rider->last_name);
+    printF(leave_msg);
+    free(leave_msg);
+
+    SEM_signal(&track_sem); 
     return NULL;
 }
 
 void display_standings() {
-    dprintf(STDOUT_FILENO, "=== Actual Classification ===\n");
+    printF("=== Current Classification ===\n");
     for (int i = 0; i < total_riders - 1; i++) {
         for (int j = i + 1; j < total_riders; j++) {
             if (riders[i].best_time > riders[j].best_time) {
@@ -116,16 +135,28 @@ void display_standings() {
     }
 
     for (int i = 0; i < total_riders; i++) {
-        int minutes = (int)(riders[i].best_time / 60);
-        int seconds = (int)(riders[i].best_time) % 60;
-        int milliseconds = (int)((riders[i].best_time - (int)riders[i].best_time) * 1000);
-        dprintf(STDOUT_FILENO, "%d. (%d) %s %s: %02d:%02d:%03d\n", i + 1, riders[i].number, riders[i].first_name, riders[i].last_name, minutes, seconds, milliseconds);
+        char* standings_msg = NULL;
+        if (riders[i].best_time != __DBL_MAX__) {
+            int minutes = (int)(riders[i].best_time / 60);
+            int seconds = (int)(riders[i].best_time) % 60;
+            int milliseconds = (int)((riders[i].best_time - (int)riders[i].best_time) * 1000);
+            asprintf(&standings_msg, "%d. (%d) %s %s: %02d:%02d:%03d\n",  i + 1, riders[i].number, riders[i].first_name, riders[i].last_name, minutes, seconds, milliseconds);
+        }
+        printF(standings_msg);
+        free(standings_msg);
     }
+    printF("\n");
 }
 
 
 void ignore_signal() {
     printF("SIGINT ignored. Use another way to terminate.\n");
+}
+
+void* countten() {
+    sleep(10); 
+    countDone = 1;
+    return NULL;
 }
 
 
@@ -134,7 +165,10 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, ignore_signal);
 
     if (argc != 3) {
-        dprintf(STDOUT_FILENO, "Usage: %s <riders_file> <max_riders_on_track>\n", argv[0]);
+        char *usage_msg = NULL;
+        asprintf(&usage_msg, "Usage: %s <riders_file> <max_riders_on_track>\n", argv[0]);
+        printF(usage_msg);
+        free(usage_msg);
         return EXIT_FAILURE;
     }
 
@@ -154,9 +188,18 @@ int main(int argc, char* argv[]) {
         pthread_create(&threads[i], NULL, rider_on_track, (void*)&riders[i]);
     }
 
+    pthread_t display_thread;
+    pthread_create(&display_thread, NULL, countten, NULL);
+
     for (int i = 0; i < 10; i++) {
-        sleep(3);
-        display_standings();
+        
+        if(countDone == 1){
+            pthread_cancel(display_thread);
+            break;
+        }else{
+            sleep(3);
+            display_standings();
+        }
     }
 
     for (int i = 0; i < total_riders; i++) {
@@ -164,6 +207,7 @@ int main(int argc, char* argv[]) {
     }
 
     display_standings();
+    printF("\nThe session has ended\n");
     free(riders);
     SEM_destructor(&track_sem); // Destroy the semaphore
     return EXIT_SUCCESS;
