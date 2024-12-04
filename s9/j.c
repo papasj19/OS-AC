@@ -141,9 +141,10 @@ void display_standings() {
             int seconds = (int)(riders[i].best_time) % 60;
             int milliseconds = (int)((riders[i].best_time - (int)riders[i].best_time) * 1000);
             asprintf(&standings_msg, "%d. (%d) %s %s: %02d:%02d:%03d\n",  i + 1, riders[i].number, riders[i].first_name, riders[i].last_name, minutes, seconds, milliseconds);
+            printF(standings_msg);
+            free(standings_msg);
         }
-        printF(standings_msg);
-        free(standings_msg);
+        
     }
     printF("\n");
 }
