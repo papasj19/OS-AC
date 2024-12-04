@@ -2,7 +2,6 @@
     OPERATING SYSTEMS: SESSION 9
     Guillermo Nebra Aljama <guillermo.nebra>
     Spencer Johnson <spencerjames.johnson>
-
 */
 
 #include <stdio.h>
@@ -10,10 +9,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <semaphore.h>
 #include <pthread.h>
 #include <time.h>
 #include <errno.h>
+#include "semaphore_v2.h"
+#include <signal.h>
+
+#define printF(x) write(1, x, strlen(x))
 
 typedef struct {
     char first_name[50];
@@ -24,11 +26,9 @@ typedef struct {
     int laps_completed;
 } Rider;
 
-
 Rider* riders;
 int total_riders;
-sem_t track_sem;  
-
+semaphore track_sem; // Use the semaphore struct from semaphore_v2.h
 
 int readUntil(int fd, char* buffer, char delimiter, int max_length) {
     int count = 0;
@@ -43,7 +43,6 @@ int readUntil(int fd, char* buffer, char delimiter, int max_length) {
     buffer[count] = '\0'; 
     return count;
 }
-
 
 void load_riders(const char* filename) {
     int fd = open(filename, O_RDONLY);
@@ -79,26 +78,17 @@ void load_riders(const char* filename) {
     close(fd);
 }
 
-
 double generate_lap_time() {
-
     double sector1 = 0.333 + ((rand() % 1334) / 1000.0);  
     double sector2 = 0.333 + ((rand() % 1334) / 1000.0);
     double sector3 = 0.333 + ((rand() % 1334) / 1000.0);
-
     return sector1 + sector2 + sector3; 
 }
 
-
 void* rider_on_track(void* arg) {
     Rider* rider = (Rider*)arg;
-    
-    sem_wait(&track_sem); 
-
-
+    SEM_wait(&track_sem); // Wait on the semaphore
     dprintf(STDOUT_FILENO, "(%d) %s %s on track\n", rider->number, rider->first_name, rider->last_name);
-
-
     for (int i = 0; i < 5; i++) {
         usleep((rand() % 1000000)); 
         double lap_time = generate_lap_time();  
@@ -107,17 +97,11 @@ void* rider_on_track(void* arg) {
         }
         rider->laps_completed++;
         dprintf(STDOUT_FILENO, "(%d) %s %s completed lap %d with time: %.3f seconds\n", rider->number, rider->first_name, rider->last_name, rider->laps_completed, lap_time);
-        if (rider->laps_completed == 5) {
-            break; 
-        }
     }
     dprintf(STDOUT_FILENO, "(%d) %s %s leaves the track\n", rider->number, rider->first_name, rider->last_name);
-
-    sem_post(&track_sem);  
+    SEM_signal(&track_sem); // Signal the semaphore
     return NULL;
 }
-
-
 
 void display_standings() {
     dprintf(STDOUT_FILENO, "=== Actual Classification ===\n");
@@ -139,19 +123,33 @@ void display_standings() {
     }
 }
 
+
+void ignore_signal() {
+    printF("SIGINT ignored. Use another way to terminate.\n");
+}
+
+
 int main(int argc, char* argv[]) {
+
+    signal(SIGINT, ignore_signal);
+
     if (argc != 3) {
         dprintf(STDOUT_FILENO, "Usage: %s <riders_file> <max_riders_on_track>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
     load_riders(argv[1]);
-
     int max_riders = atoi(argv[2]);
-    sem_init(&track_sem, 0, max_riders);
+    if (SEM_constructor(&track_sem) < 0) {
+        perror("Error creating semaphore");
+        return EXIT_FAILURE;
+    }
+    if (SEM_init(&track_sem, max_riders) < 0) {
+        perror("Error initializing semaphore");
+        return EXIT_FAILURE;
+    }
 
     pthread_t threads[total_riders];
-
     for (int i = 0; i < total_riders; i++) {
         pthread_create(&threads[i], NULL, rider_on_track, (void*)&riders[i]);
     }
@@ -166,8 +164,7 @@ int main(int argc, char* argv[]) {
     }
 
     display_standings();
-
     free(riders);
-    sem_destroy(&track_sem);
+    SEM_destructor(&track_sem); // Destroy the semaphore
     return EXIT_SUCCESS;
 }
