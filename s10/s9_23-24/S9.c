@@ -60,7 +60,7 @@ void destroy_mutex(){
     pthread_mutex_destroy(&mtx_tires_team);
 }
 
-void* bolts_team(void* arg) {
+void* bolts_team() {
 
     int random_time;
 
@@ -102,7 +102,7 @@ void* bolts_team(void* arg) {
     return NULL;
 }
 
-void* tires_team(void* arg) {
+void* tires_team() {
 
     int random_time;
 
@@ -143,7 +143,7 @@ void* tires_team(void* arg) {
 
 }
 
-void* fuel_team(void* arg) {
+void* fuel_team() {
 
     int random_time;
         
