@@ -133,7 +133,7 @@ void* station_worker(void* arg) {
             if(state.car_complete[car]) continue;
             
             if(state.car_station[car] == station_idx) {
-                
+                 
                 if(station_idx == NUM_STATIONS - 1) {
                     do_quality_control(car);
                 } else {
