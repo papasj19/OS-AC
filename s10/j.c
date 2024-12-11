@@ -16,11 +16,11 @@
 #define MAX_CARS_IN_PROCESS 2
 
 #define ERR_ARGS "Usage: ./S10.exe <number of cars>\n"
-#define STATION_START "\033[0;32m[%s] of car [%d] starting\033[0m"
-#define STATION_COMPLETE "\033[0;34m[%s] of car [%d] assembled\033[0m"
-#define QC_CHECK "\033[0;33mQuality control of car [%d] at [%s]\033[0m"
-#define QC_STATUS "\033[0;%dm[%s]\033[0m"
-#define QC_PASSED "\033[0;32mQuality control of car [%d] passed\033[0m"
+#define STATION_START "\033\n[0;32m[%s] of car [%d] starting\033[0m"
+#define STATION_COMPLETE "\033\n[0;34m[%s] of car [%d] assembled\033[0m"
+#define QC_CHECK "\033\n[0;33mQuality control of car [%d] at [%s]\033[0m"
+#define QC_STATUS "\033\n[0;%dm[%s]\033[0m"
+#define QC_PASSED "\033\n[0;32mQuality control of car [%d] passed\033[0m"
 
 const char* STATION_NAMES[] = {"Body Station", "Engine Station", "Wheel Station", "Paint Station", "Quality Control"};
 
