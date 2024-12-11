@@ -1,15 +1,8 @@
 /*
-    OPERATING SYSTEMS: SESSION 9
+    OPERATING SYSTEMS: SESSION 10
     Guillermo Nebra Aljama <guillermo.nebra>
     Spencer Johnson <spencerjames.johnson>
 
-    DISCLAIMER: 
-    The error message shown when compiling the code is related to a conflict with the _GNU_SOURCE macro and the provided semaphore library.
-    Aaron told us to write this disclaimer, as the error originates from "semaphore_v2.h" and not from the code itself :)
-    Pease be kind and ignore the error message. 
-    
-    Thank you!
-        - Guillermo and Spencer
 
 */
 
