@@ -1,0 +1,10 @@
+Francesco,Bagnaia,1,Ducati Lenovo Team
+Enea,Bastianini,23,Ducati Lenovo Team
+Maverick,Viñales,12,Aprilia Racing
+Fabio,Quartararo,20,Monster Energy Yamaha MotoGP
+Pedro,Acosta,31,Red Bull GASGAS Tech3
+Joan,Mir,36,Repsol Honda Team
+Aleix,Espargaró,41,Aprilia Racing
+Jack,Miller,43,Red Bull KTM Factory Racing
+Jorge,Martín,89,Prima Pramac Racing
+Marc,Márquez,93,Gresini Racing MotoGP
