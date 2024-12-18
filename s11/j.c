@@ -1,49 +1,79 @@
 /*
-    OPERATING SYSTEMS: SESSION 10
+    OPERATING SYSTEMS: SESSION 11
     Guillermo Nebra Aljama <guillermo.nebra>
     Spencer Johnson <spencerjames.johnson>
-
-    DISCLAIMER: 
-    As in the previous session, the error message shown when compiling the code is related to a conflict with the _GNU_SOURCE macro and the provided semaphore library.
-    Aaron told us to write this disclaimer, as the error originates from "semaphore_v2.h" and not from the code itself :)
-    Pease be kind and ignore the error message. 
-    
-    Thank you!
-        - Guillermo and Spencer
 
 */
 
 
-#define _GNU_SOURCE
-
-#include <pthread.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <time.h>
-#include <errno.h>
 
-#define Write(x) write(1, x, strlen(x))
-#define NUM_STATIONS 5
-#define MAX_CARS_IN_PROCESS 2
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Error: Invalid number of arguments.\nUsage: ./s11 <MESSAGE_TYPE>\n");
+        return 1;
+    }
 
-#define ERR_ARGS "Usage: ./S10.exe <number of cars>\n"
-#define STATION_START "\033[0;32m%s of car %d starting\n\033[0m"
-#define STATION_COMPLETE "\033[0;34m%s of car %d assembled\n\033[0m"
-#define QC_CHECK "\033[0;33mQuality control of car %d at %s \033[0m"
-#define QC_STATUS "\033[0;%dm%s\033[0m\n"
-#define QC_PASSED "\033[0;32mQuality control of car %d passed\n\033[0m"
+    if (strcmp(argv[1], "EMERGENCY") == 0) {
+        printf(
+            "****************************************\n"
+            "*                                      *\n"
+            "*       !!!! EMERGENCY !!!!            *\n"
+            "*       TAKE IMMEDIATE ACTION         *\n"
+            "*                                      *\n"
+            "****************************************\n"
+            "*                                      *\n"
+            "*       !!!! EMERGENCY !!!!            *\n"
+            "*       TAKE IMMEDIATE ACTION         *\n"
+            "*                                      *\n"
+            "*            ______                    *\n"
+            "*         .-\"      \"-.                 *\n"
+            "*        /            \\                *\n"
+            "*       |              |               *\n"
+            "*       |,  .-.  .-.  ,|               *\n"
+            "*       | )(__/  \\__)(|               *\n"
+            "*       |/     /\\    \|               *\n"
+            "*       (_     ^^     _)               *\n"
+            "*        \\__|IIIIII|__/                *\n"
+            "*         | \\IIIIII/ |                 *\n"
+            "*         \\          /                 *\n"
+            "*          `--------`                  *\n"
+            "*                                      *\n"
+            "****************************************\n"
+        );
+    } else if (strcmp(argv[1], "REPORT") == 0) {
+        printf(
+            "****************************************\n"
+            "*                                      *\n"
+            "*         MISSION REPORT               *\n"
+            "*       ALL SYSTEMS NOMINAL           *\n"
+            "*      NO ANOMALIES DETECTED          *\n"
+            "*                                      *\n"
+            "****************************************\n"
+        );
+    } else if (strcmp(argv[1], "WELCOME") == 0) {
+        printf(
+            "****************************************\n"
+            "*                                      *\n"
+            "*       WELCOME, ASTRONAUTS!           *\n"
+            "*     TO THE JOURNEY OF A LIFETIME     *\n"
+            "*                                      *\n"
+            "*              __                      *\n"
+            "*           __(o )                     *\n"
+            "*           ===  |                     *\n"
+            "*             | \\___/|                 *\n"
+            "*             \\ \\=== |                 *\n"
+            "*              \\_\\==/                  *\n"
+            "*                ||                    *\n"
+            "*               ===                    *\n"
+            "*                                      *\n"
+            "****************************************\n"
+        );
+    } else {
+        printf("Error: Invalid message type. Valid types: EMERGENCY, REPORT, WELCOME.\n");
+        return 1;
+    }
 
-
-
-
-int main(void){
-
-
-
-    
     return 0;
 }
