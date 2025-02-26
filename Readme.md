@@ -17,40 +17,34 @@ It was tested on the C extension using the software [Visual Studio Code](https:/
 
 ## Contents
 
-* Lab 0 
-    * enigma.h
-    * enigma.c
-* Lab 1 
-    * enigma.h
-    * enigma.c
+
 * Lab 2 
-    * enigma.h
-    * enigma.c
-* Lab 3 
-    * enigma.h
-    * enigma.c
-* Lab 4 
-    * enigma.h
-    * enigma.c
-* Lab 5 
-    * enigma.h
-    * enigma.c
-* Lab 6 
-    * enigma.h
-    * enigma.c
-* Lab 7 
-    * enigma.h
-    * enigma.c
+    * s2.c
+* Lab 3 - Threads
+    * data.txt
+    * s3.c
+* Lab 4 (Sockets I)
+    * challenges.txt
+    * server.exe
+    * s4.c
+* Lab 5 (Sockets II)
+    * challenges.txt
+    * s5.c
+* Lab 6 - Pipes and Memory
+    * s6.c
+* Lab 7 - Select
+    * dictionary.txt
+    * s7.c
 
 
 ## Compiling 
 
-This program will automatically compile with the following command
+This program will NOT automatically compile with the following command
 
 ```bash
 $  make
 ```
-After this, to run a specfic process, see the following: 
+I will come back to explain the compiling
 
 
 ## Contact
